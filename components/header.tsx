@@ -21,6 +21,9 @@ export function Header() {
                 <a href="#contacto" className="hover:text-primary-light transition-colors">
                   Contacto
                 </a>
+                <a href="/admin" className="hover:text-primary-light transition-colors">
+                  Admin
+                </a>
               </nav>
               <CartButton onClick={() => setIsCartOpen(true)} />
             </div>
