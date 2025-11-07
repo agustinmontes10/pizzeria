@@ -1,0 +1,58 @@
+import type { Product } from "@/types/product"
+
+export const mockProducts: Product[] = [
+  {
+    id: "1",
+    name: "Margherita",
+    description: "Tomate, mozzarella fresca, albahaca y aceite de oliva",
+    price: 12.99,
+    imageUrl: "/pizza-margherita-con-mozzarella-y-albahaca.jpg",
+    category: "pizza",
+    available: true,
+  },
+  {
+    id: "2",
+    name: "Pepperoni",
+    description: "Salsa de tomate, mozzarella y pepperoni premium",
+    price: 14.99,
+    imageUrl: "/pizza-pepperoni-con-queso-derretido.jpg",
+    category: "pizza",
+    available: true,
+  },
+  {
+    id: "3",
+    name: "Cuatro Quesos",
+    description: "Mozzarella, gorgonzola, parmesano y queso de cabra",
+    price: 15.99,
+    imageUrl: "/pizza-cuatro-quesos-cremosa.jpg",
+    category: "pizza",
+    available: true,
+  },
+  {
+    id: "4",
+    name: "Vegetariana",
+    description: "Pimientos, champiñones, cebolla, aceitunas y tomate",
+    price: 13.99,
+    imageUrl: "/pizza-vegetariana-con-verduras-frescas.jpg",
+    category: "pizza",
+    available: true,
+  },
+  {
+    id: "5",
+    name: "Hawaiana",
+    description: "Jamón, piña, mozzarella y salsa de tomate",
+    price: 13.99,
+    imageUrl: "/pizza-hawaiana-con-jamon-y-pi-a.jpg",
+    category: "pizza",
+    available: true,
+  },
+  {
+    id: "6",
+    name: "Barbacoa",
+    description: "Pollo, bacon, cebolla caramelizada y salsa BBQ",
+    price: 16.99,
+    imageUrl: "/pizza-barbacoa-con-pollo-y-bacon.jpg",
+    category: "pizza",
+    available: true,
+  },
+]
