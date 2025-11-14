@@ -22,6 +22,7 @@ import {
 import type { Product } from "@/types/product"
 import { toast } from "sonner"
 import { LogOut, Plus } from "lucide-react"
+import { ScheduleTable } from "@/components/admin/schedule-table"
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
@@ -29,6 +30,8 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
+  const [view, setView] = useState<"products" | "schedule">("products")
+
   const router = useRouter()
 
   useEffect(() => {
@@ -116,7 +119,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-bold mb-6 text-center">
             Panel de Administración
           </h1>
-          <LoginForm onSuccess={() => {}} />
+          <LoginForm onSuccess={() => { }} />
         </div>
       </div>
     )
@@ -129,14 +132,25 @@ export default function AdminPage() {
           <div>
             <h1 className="text-3xl font-bold">Panel de Administración</h1>
             <p className="text-muted-foreground mt-1">
-              Gestiona los productos de la tienda
+              {view === "products" ? "Gestiona los productos" : "Gestiona los horarios"}
             </p>
           </div>
+
           <div className="flex gap-2">
-            <Button onClick={handleNewProduct}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Producto
+            <Button
+              variant={view === "products" ? "default" : "outline"}
+              onClick={() => setView("products")}
+            >
+              Productos
             </Button>
+
+            <Button
+              variant={view === "schedule" ? "default" : "outline"}
+              onClick={() => setView("schedule")}
+            >
+              Horarios
+            </Button>
+
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Cerrar Sesión
@@ -144,13 +158,19 @@ export default function AdminPage() {
           </div>
         </div>
 
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <ProductsTable
-            products={products}
-            onEdit={handleEdit}
-            onDelete={handleDeleteProduct}
-          />
+          {view === "products" ? (
+            <ProductsTable
+              products={products}
+              onEdit={handleEdit}
+              onDelete={handleDeleteProduct}
+            />
+          ) : (
+            <ScheduleTable />
+          )}
         </div>
+
 
         <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
