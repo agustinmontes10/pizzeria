@@ -8,6 +8,7 @@ import {
     deleteDoc,
     query,
     orderBy,
+    onSnapshot,
 } from "firebase/firestore"
 import { db } from "./firebase"
 import { Order } from "@/types/order"
@@ -50,7 +51,6 @@ export async function getOrderById(id: string): Promise<Order | null> {
 // Crear una nueva orden
 export async function createOrder(order: Omit<Order, "id">): Promise<string> {
     try {
-        console.log('entroooo')
         const docRef = await addDoc(collection(db, ORDERS_COLLECTION), order)
         return docRef.id
     } catch (error) {
@@ -82,4 +82,18 @@ export async function deleteOrder(id: string): Promise<void> {
         console.error("Error eliminando orden:", error)
         throw error
     }
+}
+
+// Escuchar cambios en las ordenes
+export function listenToOrders(callback: (orders: Order[]) => void) {
+  const q = query(collection(db, ORDERS_COLLECTION), orderBy("hour"))
+
+  return onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Order[]
+
+    callback(data)
+  })
 }

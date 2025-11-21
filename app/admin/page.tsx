@@ -23,6 +23,9 @@ import type { Product } from "@/types/product"
 import { toast } from "sonner"
 import { LogOut, Plus } from "lucide-react"
 import { ScheduleTable } from "@/components/admin/schedule-table"
+import { Order } from "@/types/order"
+import { deleteOrder, listenToOrders, updateOrder } from "@/lib/orders-service"
+import { OrdersTable } from "@/components/admin/orders-table"
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
@@ -30,7 +33,8 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
-  const [view, setView] = useState<"products" | "schedule">("products")
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [view, setView] = useState<"products" | "schedule" | "orders">("products")
 
   const router = useRouter()
 
@@ -101,6 +105,22 @@ export default function AdminPage() {
     setIsProductDialogOpen(true)
   }
 
+  async function handleDeleteOrder(id: string) {
+    await deleteOrder(id)
+  }
+
+  async function handleMarkSent(id: string) {
+    await updateOrder(id, { sent: true })
+  }
+
+  useEffect(() => {
+    const unsubscribe = listenToOrders((data) => {
+      setOrders(data)
+    })
+
+    return () => unsubscribe()
+  }, [])
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -151,6 +171,14 @@ export default function AdminPage() {
               Horarios
             </Button>
 
+            <Button
+              variant={view === "orders" ? "default" : "outline"}
+              onClick={() => setView("orders")}
+            >
+              Órdenes
+            </Button>
+
+
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Cerrar Sesión
@@ -165,6 +193,12 @@ export default function AdminPage() {
               products={products}
               onEdit={handleEdit}
               onDelete={handleDeleteProduct}
+            />
+          ) : view === "orders" ? (
+            <OrdersTable
+              orders={orders}
+              onDelete={handleDeleteOrder}
+              onMarkSent={handleMarkSent}
             />
           ) : (
             <ScheduleTable />

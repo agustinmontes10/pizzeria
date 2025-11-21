@@ -5,8 +5,8 @@ import { CartItemComponent } from "./cart-item"
 import { useEffect, useState } from "react"
 import { createOrder } from "@/lib/orders-service"
 import { Order } from "@/types/order"
-import { reserveSlots } from "@/lib/schedule-service"
 import { getTodayDateString } from "@/utils"
+import { getAvailableTimeSlotsForOrder, AvailableTimeSlot, bookSlots } from "@/lib/schedule-service"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -20,14 +20,60 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     name: '',
     paymentMethod: 'efectivo',
     deliveryTime: '',
-    deliveryType: 'retiro'
+    deliveryType: 'retiro',
+    selectedDate: getTodayDateString()
   })
+
+  // Estados para horarios disponibles
+  const [availableSlots, setAvailableSlots] = useState<AvailableTimeSlot[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState<AvailableTimeSlot | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }))
+  }
+
+  // Cargar horarios disponibles cuando cambia la fecha o los items del carrito
+  useEffect(() => {
+    async function loadAvailableSlots() {
+      if (items.length === 0 || step !== 2) return
+
+      setLoadingSlots(true)
+      try {
+        const totalPizzas = items.reduce((sum, item) => sum + item.quantity, 0)
+        const slots = await getAvailableTimeSlotsForOrder(
+          formData.selectedDate,
+          totalPizzas,
+          5 // 5 minutos por pizza
+        )
+        setAvailableSlots(slots)
+
+        // Si no hay slots disponibles, limpiar selección
+        if (slots.length === 0) {
+          setSelectedSlot(null)
+          setFormData(prev => ({ ...prev, deliveryTime: '' }))
+        }
+      } catch (error) {
+        console.error("Error cargando horarios:", error)
+        setAvailableSlots([])
+      } finally {
+        setLoadingSlots(false)
+      }
+    }
+
+    loadAvailableSlots()
+  }, [items, formData.selectedDate, step])
+
+  // Manejar selección de slot
+  const handleSlotSelection = (slot: AvailableTimeSlot) => {
+    setSelectedSlot(slot)
+    setFormData(prev => ({
+      ...prev,
+      deliveryTime: slot.deliveryTime
     }))
   }
 
@@ -47,7 +93,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   async function handleSendOrder(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!formData.name || !formData.deliveryTime) {
+    if (!formData.name || !formData.deliveryTime || !selectedSlot) {
       alert('Por favor completa todos los campos obligatorios')
       return
     }
@@ -56,7 +102,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       // 1) Calcular cantidad de pizzas del pedido
       const totalPizzas = items.reduce((acc, item) => acc + item.quantity, 0)
 
-      // 2) Construir objeto order SIN id todavía (id lo genera Firestore)
+      // 2) Reservar slots ANTES de crear la orden
+      console.log('Reservando slots:', selectedSlot.slotIds)
+      await bookSlots(selectedSlot.slotIds)
+
+      // 3) Construir objeto order SIN id todavía (id lo genera Firestore)
       const order: Omit<Order, "id"> = {
         order: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
         hour: formData.deliveryTime,
@@ -65,14 +115,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         shippingType: formData.deliveryType,
         total: totalPrice,
         sent: false,
-        pizzas: totalPizzas,          // ✅ Agregalo a tu tipo Order
-        date: getTodayDateString(),  // ✅ Necesitas YYYY-MM-DD para los slots
+        pizzas: totalPizzas,
+        date: formData.selectedDate,
       }
 
-      // 3) Reservar slots ANTES de crear orden
-      await reserveSlots(order.date, order.hour, order.pizzas)
-
-      // 4) Si la reserva funciona, creas la orden
+      // 4) Si la reserva funciona, crear la orden
       const orderId = await createOrder(order)
 
       // 5) Reset de estados
@@ -81,8 +128,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         name: '',
         paymentMethod: 'efectivo',
         deliveryTime: '',
-        deliveryType: 'retiro'
+        deliveryType: 'retiro',
+        selectedDate: getTodayDateString()
       })
+      setSelectedSlot(null)
+      setAvailableSlots([])
       setStep(1)
       onClose()
 
@@ -91,8 +141,23 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     } catch (error: any) {
       console.error('Error al crear el pedido:', error)
 
-      if (error.message === "Horario no disponible") {
-        alert('El horario ya fue tomado. Por favor elegí otro.')
+      // Mensajes de error específicos
+      if (error.message?.includes('no tiene capacidad suficiente')) {
+        alert('El horario seleccionado ya no está disponible. Por favor selecciona otro horario.')
+        // Recargar slots disponibles
+        const totalPizzas = items.reduce((sum, item) => sum + item.quantity, 0)
+        const slots = await getAvailableTimeSlotsForOrder(
+          formData.selectedDate,
+          totalPizzas,
+          5
+        )
+        setAvailableSlots(slots)
+        setSelectedSlot(null)
+        setFormData(prev => ({ ...prev, deliveryTime: '' }))
+      } else if (error.message?.includes('no existe')) {
+        alert('Error: Los horarios han cambiado. Por favor selecciona nuevamente.')
+        setSelectedSlot(null)
+        setFormData(prev => ({ ...prev, deliveryTime: '' }))
       } else {
         alert('Hubo un error al procesar tu pedido. Inténtalo nuevamente.')
       }
@@ -210,34 +275,87 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   </div>
                 </div>
 
-                {/* Hora de entrega */}
+                {/* Fecha de entrega */}
                 <div>
-                  <label htmlFor="deliveryTime" className="block text-sm font-medium text-card-foreground mb-1">
-                    Hora de entrega *
+                  <label htmlFor="selectedDate" className="block text-sm font-medium text-card-foreground mb-1">
+                    Fecha de entrega *
                   </label>
-                  <select
-                    id="deliveryTime"
-                    name="deliveryTime"
-                    value={formData.deliveryTime}
+                  <input
+                    type="date"
+                    id="selectedDate"
+                    name="selectedDate"
+                    value={formData.selectedDate}
                     onChange={handleInputChange}
+                    min={getTodayDateString()}
                     required
                     className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="">Selecciona una hora</option>
-                    <option value="12:00">12:00 PM</option>
-                    <option value="12:30">12:30 PM</option>
-                    <option value="13:00">01:00 PM</option>
-                    <option value="13:30">01:30 PM</option>
-                    <option value="14:00">02:00 PM</option>
-                    <option value="14:30">02:30 PM</option>
-                    <option value="15:00">03:00 PM</option>
-                    <option value="19:00">07:00 PM</option>
-                    <option value="19:30">07:30 PM</option>
-                    <option value="20:00">08:00 PM</option>
-                    <option value="20:30">08:30 PM</option>
-                    <option value="21:00">09:00 PM</option>
-                    <option value="21:30">09:30 PM</option>
-                  </select>
+                  />
+                </div>
+
+                {/* Horarios disponibles */}
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    Hora de entrega *
+                  </label>
+
+                  {loadingSlots ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      Cargando horarios disponibles...
+                    </div>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="text-center py-4 px-3 bg-muted rounded-md">
+                      <p className="text-sm text-muted-foreground">
+                        No hay horarios disponibles para esta fecha.
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Intenta seleccionar otra fecha.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {availableSlots.map((slot, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleSlotSelection(slot)}
+                          className={`w-full p-3 border rounded-md text-left transition-all ${selectedSlot?.deliveryTime === slot.deliveryTime
+                            ? 'border-primary bg-primary/10 ring-2 ring-primary/50'
+                            : 'border-border hover:border-primary/50 hover:bg-muted'
+                            }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-semibold text-card-foreground">
+                                Entrega: {slot.deliveryTime}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Preparación inicia: {slot.startTime}
+                              </p>
+                            </div>
+                            {selectedSlot?.deliveryTime === slot.deliveryTime && (
+                              <svg
+                                className="w-5 h-5 text-primary"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Info de pizzas */}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {items.reduce((sum, item) => sum + item.quantity, 0)} pizza(s) -
+                    Tiempo estimado: {items.reduce((sum, item) => sum + item.quantity, 0) * 5} minutos
+                  </p>
                 </div>
 
                 {/* Tipo de envío */}
@@ -269,7 +387,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   </div>
                 </div>
               </div>
-           
+
             </form>
           )}
         </div>
