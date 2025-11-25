@@ -8,11 +8,14 @@ import { ProductGrid } from "@/components/product-grid"
 import { getProducts } from "@/lib/products-service"
 import type { Product } from "@/types/product"
 import { toast } from "sonner"
+import { CartButton } from "@/components/cart-button"
+import { CartDrawer } from "@/components/cart-drawer"
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   useEffect(() => {
     async function loadProducts() {
@@ -48,8 +51,8 @@ export default function HomePage() {
         <section id="productos" className="container mx-auto px-4 py-12">
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Cargando productos...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-medium mx-auto mb-4"></div>
+              <p className="text-foreground/60">Cargando productos...</p>
             </div>
           ) : (
             <ProductGrid products={filteredProducts} />
@@ -58,6 +61,10 @@ export default function HomePage() {
       </main>
 
       <Footer />
+
+      <CartButton onClick={() => setIsCartOpen(true)} />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
     </div>
   )
 }

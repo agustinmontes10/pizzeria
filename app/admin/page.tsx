@@ -125,8 +125,8 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-medium mx-auto mb-4"></div>
+          <p className="text-foreground/60">Cargando...</p>
         </div>
       </div>
     )
@@ -151,7 +151,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Panel de Administración</h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-foreground/60 mt-1">
               {view === "products" ? "Gestiona los productos" : "Gestiona los horarios"}
             </p>
           </div>

@@ -12,7 +12,7 @@ export function CartItemComponent({ item }: CartItemProps) {
   const { updateQuantity, removeFromCart } = useCart()
 
   return (
-    <div className="flex gap-4 py-4 border-b border-border">
+    <div className="flex gap-4 py-4 border-b border-foreground/20">
       <div className="relative w-20 h-20 flex-shrink-0">
         <Image
           src={item.imageUrl || "/placeholder.svg"}
@@ -24,13 +24,13 @@ export function CartItemComponent({ item }: CartItemProps) {
       </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-card-foreground truncate">{item.name}</h3>
-        <p className="text-primary font-bold">${item.price.toFixed(2)}</p>
+        <h3 className="font-semibold text-foreground truncate">{item.name}</h3>
+        <p className="text-primary-medium font-bold">${item.price.toFixed(2)}</p>
 
         <div className="flex items-center gap-2 mt-2">
           <button
             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-            className="w-7 h-7 flex items-center justify-center bg-muted hover:bg-muted-foreground/20 rounded-md transition-colors"
+            className="w-7 h-7 flex items-center justify-center bg-foreground/5 hover:bg-foreground/10 rounded-md transition-colors"
             aria-label="Disminuir cantidad"
           >
             <svg
@@ -50,7 +50,7 @@ export function CartItemComponent({ item }: CartItemProps) {
 
           <button
             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-            className="w-7 h-7 flex items-center justify-center bg-muted hover:bg-muted-foreground/20 rounded-md transition-colors"
+            className="w-7 h-7 flex items-center justify-center bg-foreground/5 hover:bg-foreground/10 rounded-md transition-colors"
             aria-label="Aumentar cantidad"
           >
             <svg

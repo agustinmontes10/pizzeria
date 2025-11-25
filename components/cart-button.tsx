@@ -12,7 +12,7 @@ export function CartButton({ onClick }: CartButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="relative p-2 hover:bg-primary-dark rounded-md transition-colors"
+      className="fixed bottom-5 right-5 p-4 hover:bg-secondary-dark rounded-md transition-colors bg-secondary-medium"
       aria-label="Abrir carrito"
     >
       <svg
@@ -32,7 +32,7 @@ export function CartButton({ onClick }: CartButtonProps) {
       </svg>
 
       {totalItems > 0 && (
-        <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+        <span className="absolute top-[0px] right-[15px] bg-secondary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
           {totalItems}
         </span>
       )}

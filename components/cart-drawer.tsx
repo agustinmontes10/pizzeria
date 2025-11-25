@@ -172,13 +172,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       <div className="fixed inset-0 bg-foreground/50 z-50 transition-opacity" onClick={onClose} aria-hidden="true" />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-card z-50 shadow-2xl flex flex-col">
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-background z-50 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-2xl font-bold text-card-foreground">Carrito ({totalItems})</h2>
+        <div className="flex items-center justify-between p-4 border-b border-foreground/20">
+          <h2 className="text-2xl font-bold text-foreground">Carrito ({totalItems})</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-muted rounded-md transition-colors"
+            className="p-2 hover:bg-foreground/10 rounded-md transition-colors"
             aria-label="Cerrar carrito"
           >
             <svg
@@ -208,13 +208,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className="text-muted-foreground mb-4"
+                className="text-foreground/60 mb-4"
               >
                 <circle cx="9" cy="21" r="1" />
                 <circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
               </svg>
-              <p className="text-muted-foreground text-lg">Tu carrito está vacío</p>
+              <p className="text-foreground/60 text-lg">Tu carrito está vacío</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -226,12 +226,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
           {step === 2 && (
             <form onSubmit={handleSendOrder} className="space-y-4">
-              <h3 className="text-xl font-bold text-card-foreground mb-4">Información del pedido</h3>
+              <h3 className="text-xl font-bold text-foreground mb-4">Información del pedido</h3>
 
               <div className="space-y-4">
                 {/* Nombre */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-card-foreground mb-1">
+                  <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
                     Nombre completo *
                   </label>
                   <input
@@ -241,14 +241,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-3 py-2 border border-foreground/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-medium/50"
                     placeholder="Tu nombre"
                   />
                 </div>
 
                 {/* Método de pago */}
                 <div>
-                  <p className="block text-sm font-medium text-card-foreground mb-2">Método de pago *</p>
+                  <p className="block text-sm font-medium text-foreground mb-2">Método de pago *</p>
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2">
                       <input
@@ -257,7 +257,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         value="efectivo"
                         checked={formData.paymentMethod === 'efectivo'}
                         onChange={handleInputChange}
-                        className="text-primary focus:ring-primary"
+                        className="text-primary-medium focus:ring-primary-medium"
                       />
                       <span>Efectivo</span>
                     </label>
@@ -268,7 +268,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         value="transferencia"
                         checked={formData.paymentMethod === 'transferencia'}
                         onChange={handleInputChange}
-                        className="text-primary focus:ring-primary"
+                        className="text-primary-medium focus:ring-primary-medium"
                       />
                       <span>Transferencia</span>
                     </label>
@@ -277,7 +277,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                 {/* Fecha de entrega */}
                 <div>
-                  <label htmlFor="selectedDate" className="block text-sm font-medium text-card-foreground mb-1">
+                  <label htmlFor="selectedDate" className="block text-sm font-medium text-foreground mb-1">
                     Fecha de entrega *
                   </label>
                   <input
@@ -288,26 +288,26 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     onChange={handleInputChange}
                     min={getTodayDateString()}
                     required
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-3 py-2 border border-foreground/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-medium/50"
                   />
                 </div>
 
                 {/* Horarios disponibles */}
                 <div>
-                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Hora de entrega *
                   </label>
 
                   {loadingSlots ? (
-                    <div className="text-center py-4 text-muted-foreground">
+                    <div className="text-center py-4 text-foreground/60">
                       Cargando horarios disponibles...
                     </div>
                   ) : availableSlots.length === 0 ? (
-                    <div className="text-center py-4 px-3 bg-muted rounded-md">
-                      <p className="text-sm text-muted-foreground">
+                    <div className="text-center py-4 px-3 bg-foreground/5 rounded-md">
+                      <p className="text-sm text-foreground/60">
                         No hay horarios disponibles para esta fecha.
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-foreground/60 mt-1">
                         Intenta seleccionar otra fecha.
                       </p>
                     </div>
@@ -319,22 +319,22 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           type="button"
                           onClick={() => handleSlotSelection(slot)}
                           className={`w-full p-3 border rounded-md text-left transition-all ${selectedSlot?.deliveryTime === slot.deliveryTime
-                            ? 'border-primary bg-primary/10 ring-2 ring-primary/50'
-                            : 'border-border hover:border-primary/50 hover:bg-muted'
+                            ? 'border-primary-medium bg-primary-medium/10 ring-2 ring-primary-medium/50'
+                            : 'border-foreground/20 hover:border-primary-medium/50 hover:bg-foreground/5'
                             }`}
                         >
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="font-semibold text-card-foreground">
+                              <p className="font-semibold text-foreground">
                                 Entrega: {slot.deliveryTime}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-foreground/60">
                                 Preparación inicia: {slot.startTime}
                               </p>
                             </div>
                             {selectedSlot?.deliveryTime === slot.deliveryTime && (
                               <svg
-                                className="w-5 h-5 text-primary"
+                                className="w-5 h-5 text-primary-medium"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -352,7 +352,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   )}
 
                   {/* Info de pizzas */}
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs text-foreground/60 mt-2">
                     {items.reduce((sum, item) => sum + item.quantity, 0)} pizza(s) -
                     Tiempo estimado: {items.reduce((sum, item) => sum + item.quantity, 0) * 5} minutos
                   </p>
@@ -360,7 +360,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                 {/* Tipo de envío */}
                 <div>
-                  <p className="block text-sm font-medium text-card-foreground mb-2">Tipo de envío *</p>
+                  <p className="block text-sm font-medium text-foreground mb-2">Tipo de envío *</p>
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2">
                       <input
@@ -369,7 +369,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         value="retiro"
                         checked={formData.deliveryType === 'retiro'}
                         onChange={handleInputChange}
-                        className="text-primary focus:ring-primary"
+                        className="text-primary-medium focus:ring-primary-medium"
                       />
                       <span>Retiro en local</span>
                     </label>
@@ -380,7 +380,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         value="delivery"
                         checked={formData.deliveryType === 'delivery'}
                         onChange={handleInputChange}
-                        className="text-primary focus:ring-primary"
+                        className="text-primary-medium focus:ring-primary-medium"
                       />
                       <span>Envío a domicilio</span>
                     </label>
@@ -394,24 +394,24 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-border p-4 space-y-4">
+          <div className="border-t border-foreground/20 p-4 space-y-4">
             <div className="flex justify-between items-center text-lg">
-              <span className="font-semibold text-card-foreground">Total:</span>
-              <span className="font-bold text-2xl text-primary">${totalPrice.toFixed(2)}</span>
+              <span className="font-semibold text-foreground">Total:</span>
+              <span className="font-bold text-2xl text-primary-medium">${totalPrice.toFixed(2)}</span>
             </div>
 
             {step === 1 && (
               <>
                 <button
                   onClick={() => setStep(2)}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition-colors"
+                  className="w-full bg-primary-medium hover:bg-primary-medium/90 text-white font-bold py-3 px-4 rounded-md transition-colors"
                 >
                   Continuar
                 </button>
 
                 <button
                   onClick={clearCart}
-                  className="w-full bg-muted hover:bg-muted-foreground/20 text-card-foreground font-semibold py-2 px-4 rounded-md transition-colors"
+                  className="w-full bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold py-2 px-4 rounded-md transition-colors"
                 >
                   Vaciar carrito
                 </button>
@@ -422,14 +422,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <>
                 <button
                   onClick={handleSendOrder}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-md transition-colors"
+                  className="w-full bg-primary-medium hover:bg-primary-medium/90 text-white font-bold py-3 px-4 rounded-md transition-colors"
                 >
                   Finalizar pedido
                 </button>
 
                 <button
                   onClick={() => setStep(1)}
-                  className="w-full mt-2 bg-muted hover:bg-muted-foreground/20 text-card-foreground font-semibold py-2 px-4 rounded-md transition-colors"
+                  className="w-full mt-2 bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold py-2 px-4 rounded-md transition-colors"
                 >
                   Volver al carrito
                 </button>

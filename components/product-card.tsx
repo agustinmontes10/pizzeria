@@ -18,7 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <article className="bg-card rounded-lg overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
+    <article className="bg-background rounded-lg overflow-hidden border border-foreground/20 hover:shadow-lg transition-shadow duration-300">
       <div className="relative w-full aspect-square">
         <Image
           src={product.imageUrl || "/placeholder.svg"}
@@ -36,16 +36,16 @@ export function ProductCard({ product }: ProductCardProps) {
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-xl font-bold text-card-foreground leading-tight">{product.name}</h3>
-          <span className="text-xl font-bold text-primary whitespace-nowrap">${product.price.toFixed(2)}</span>
+          <h3 className="text-xl font-bold text-foreground leading-tight">{product.name}</h3>
+          <span className="text-xl font-bold text-primary-medium whitespace-nowrap">${product.price.toFixed(2)}</span>
         </div>
 
-        <p className="text-card-foreground/70 text-sm leading-relaxed">{product.description}</p>
+        <p className="text-foreground/70 text-sm leading-relaxed">{product.description}</p>
 
         <button
           onClick={handleAddToCart}
           disabled={!product.available}
-          className="w-full mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-4 bg-primary-medium hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {product.available ? "Agregar al carrito" : "No disponible"}
         </button>
