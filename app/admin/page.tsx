@@ -193,6 +193,7 @@ export default function AdminPage() {
               products={products}
               onEdit={handleEdit}
               onDelete={handleDeleteProduct}
+              onCreate={handleNewProduct}
             />
           ) : view === "orders" ? (
             <OrdersTable

@@ -43,7 +43,7 @@ export default function HomePage() {
   }, [activeCategory, products])
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-primary-light">
       <Header />
 
       <main className="flex-1">

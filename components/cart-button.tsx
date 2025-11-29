@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect, useRef } from "react"
 import { useCart } from "@/context/cart-context"
 
 interface CartButtonProps {
@@ -8,11 +9,25 @@ interface CartButtonProps {
 
 export function CartButton({ onClick }: CartButtonProps) {
   const { totalItems } = useCart()
+  const [isBouncing, setIsBouncing] = useState(false)
+  const prevTotalItems = useRef(totalItems)
+
+  useEffect(() => {
+    if (totalItems > 0) {
+      setIsBouncing(true)
+    }
+    prevTotalItems.current = totalItems
+  }, [totalItems])
 
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-5 right-5 p-4 hover:bg-secondary-dark rounded-md transition-colors bg-secondary-medium"
+      className={`
+                fixed bottom-5 right-5 p-5
+                bg-primary-medium hover:bg-secondary-dark rounded-lg transition-colors 
+                shadow-xl shadow-secondary-light
+                ${isBouncing ? "animate-bounce" : ""}
+              `}
       aria-label="Abrir carrito"
     >
       <svg
@@ -32,7 +47,7 @@ export function CartButton({ onClick }: CartButtonProps) {
       </svg>
 
       {totalItems > 0 && (
-        <span className="absolute top-[0px] right-[15px] bg-secondary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+        <span className="absolute top-[2px] right-[20px] bg-secondary text-white text-lg font-bold rounded-full h-5 w-5 flex items-center justify-center">
           {totalItems}
         </span>
       )}

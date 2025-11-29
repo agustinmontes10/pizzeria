@@ -5,9 +5,9 @@
 
 :root {
   /* Colores primarios (tonos de rojo/terracota para pizzería) */
-  --primary-light: #D98740;
+  --primary-light: #d9874045;
   --primary-medium: #D98740;
-  --primary-dark: #D98740;
+  --primary-dark: #bb5f0e;
 
   /* Colores secundarios (tonos de verde/aceituna) */
   --secondary-light: rgb(51, 51, 51);

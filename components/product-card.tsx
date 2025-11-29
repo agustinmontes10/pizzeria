@@ -18,7 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <article className="bg-background rounded-lg overflow-hidden border border-foreground/20 hover:shadow-lg transition-shadow duration-300">
+    <article className="bg-secondary-light rounded-lg overflow-hidden shadow-lg shadow-secondary-light hover:shadow-xl transition-shadow duration-300 relative">
       <div className="relative w-full aspect-square">
         <Image
           src={product.imageUrl || "/placeholder.svg"}
@@ -32,24 +32,27 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="bg-error text-white px-4 py-2 rounded-md font-semibold">No disponible</span>
           </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-secondary-dark to-transparent pointer-events-none" />
       </div>
 
-      <div className="p-4">
+      <div className="relative -top-1 p-4 bg-gradient-to-t from-secondary-light to-secondary-dark">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-xl font-bold text-foreground leading-tight">{product.name}</h3>
+          <h3 className="text-xl font-bold text-white/80 leading-tight">{product.name}</h3>
           <span className="text-xl font-bold text-primary-medium whitespace-nowrap">${product.price.toFixed(2)}</span>
         </div>
 
-        <p className="text-foreground/70 text-sm leading-relaxed">{product.description}</p>
+        <p className="text-white/80 text-sm leading-relaxed">{product.description}</p>
 
         <button
           onClick={handleAddToCart}
           disabled={!product.available}
-          className="w-full mt-4 bg-primary-medium hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-4 bg-primary-medium hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
         >
           {product.available ? "Agregar al carrito" : "No disponible"}
         </button>
       </div>
+
+
     </article>
   )
 }
