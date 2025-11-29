@@ -164,17 +164,43 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     }
   }
 
-  if (!isOpen) return null
 
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-foreground/50 z-50 transition-opacity" onClick={onClose} aria-hidden="true" />
+      <div
+        className={`fixed inset-0 bg-foreground/50 z-50 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-background z-50 shadow-2xl flex flex-col">
+      <div
+        className={`fixed bottom-0 left-0 w-full bg-background z-50 shadow-2xl flex flex-col transition-[height] duration-300 ease-in-out overflow-hidden rounded-t-[20px] ${isOpen ? "h-[90vh]" : "h-0"}`}
+      >
+        {/* Handle / Arrow */}
+        <div
+          className="w-full flex justify-center pt-3 pb-1 cursor-pointer hover:bg-foreground/5 transition-colors"
+          onClick={onClose}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-foreground/50"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-foreground/20">
+        <div className="flex items-center justify-between px-4 pb-4 border-b border-foreground/20">
           <h2 className="text-2xl font-bold text-foreground">Carrito ({totalItems})</h2>
           <button
             onClick={onClose}
