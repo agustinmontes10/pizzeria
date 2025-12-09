@@ -15,6 +15,8 @@ export function CartButton({ onClick }: CartButtonProps) {
   useEffect(() => {
     if (totalItems > 0) {
       setIsBouncing(true)
+    } else {
+      setIsBouncing(false)
     }
     prevTotalItems.current = totalItems
   }, [totalItems])
@@ -24,8 +26,9 @@ export function CartButton({ onClick }: CartButtonProps) {
       onClick={onClick}
       className={`
                 fixed bottom-5 right-5 p-5
-                bg-primary-medium hover:bg-secondary-dark rounded-lg transition-colors 
-                shadow-xl shadow-secondary-light
+                bg-primary-dark hover:zoom-in rounded-lg transition-colors 
+                shadow-lg shadow-secondary-dark
+                z-30
                 ${isBouncing ? "animate-bounce" : ""}
               `}
       aria-label="Abrir carrito"
@@ -37,9 +40,10 @@ export function CartButton({ onClick }: CartButtonProps) {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
+        color="#f8f8f8"
       >
         <circle cx="9" cy="21" r="1" />
         <circle cx="20" cy="21" r="1" />

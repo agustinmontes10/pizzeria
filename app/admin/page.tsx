@@ -12,7 +12,7 @@ import {
 import { LoginForm } from "@/components/admin/login-form"
 import { ProductForm } from "@/components/admin/product-form"
 import { ProductsTable } from "@/components/admin/products-table"
-import { onAuthStateChange, signOutUser, getCurrentUser } from "@/lib/auth-service"
+import { onAuthStateChange, signOutUser } from "@/lib/auth-service"
 import {
   getProducts,
   createProduct,
@@ -21,11 +21,13 @@ import {
 } from "@/lib/products-service"
 import type { Product } from "@/types/product"
 import { toast } from "sonner"
-import { LogOut, Plus } from "lucide-react"
+import { LogOut, ChevronLeft, ChevronRight } from "lucide-react"
 import { ScheduleTable } from "@/components/admin/schedule-table"
 import { Order } from "@/types/order"
 import { deleteOrder, listenToOrders, updateOrder } from "@/lib/orders-service"
 import { OrdersTable } from "@/components/admin/orders-table"
+import { format, addDays, subDays } from "date-fns"
+import { es } from "date-fns/locale"
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
@@ -33,8 +35,9 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>([])
   const [view, setView] = useState<"products" | "schedule" | "orders">("products")
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   const router = useRouter()
 
@@ -114,12 +117,17 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
+    const dateStr = format(selectedDate, "yyyy-MM-dd")
     const unsubscribe = listenToOrders((data) => {
+      console.log('data', data)
       setOrders(data)
-    })
+    }, dateStr)
 
     return () => unsubscribe()
-  }, [])
+  }, [selectedDate])
+
+  const handlePrevDay = () => setSelectedDate(prev => subDays(prev, 1))
+  const handleNextDay = () => setSelectedDate(prev => addDays(prev, 1))
 
   if (isLoading) {
     return (
@@ -196,11 +204,24 @@ export default function AdminPage() {
               onCreate={handleNewProduct}
             />
           ) : view === "orders" ? (
-            <OrdersTable
-              orders={orders}
-              onDelete={handleDeleteOrder}
-              onMarkSent={handleMarkSent}
-            />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-secondary-light/10 p-4 rounded-lg">
+                <Button variant="outline" size="icon" onClick={handlePrevDay}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <h2 className="text-xl font-semibold capitalize">
+                  {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
+                </h2>
+                <Button variant="outline" size="icon" onClick={handleNextDay}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <OrdersTable
+                orders={orders}
+                onDelete={handleDeleteOrder}
+                onMarkSent={handleMarkSent}
+              />
+            </div>
           ) : (
             <ScheduleTable />
           )}

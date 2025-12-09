@@ -5,23 +5,24 @@
 
 :root {
   /* Colores primarios (tonos de rojo/terracota para pizzería) */
-  --primary-light: #d9874045;
+  --primary-light: #fde3ca;
   --primary-medium: #D98740;
   --primary-dark: #bb5f0e;
 
   /* Colores secundarios (tonos de verde/aceituna) */
-  --secondary-light: rgb(51, 51, 51);
+  --secondary-light: #333333;
   --secondary-medium: #1f1f1f;
   --secondary-dark: #0c0c0c;
 
   /* Estados */
   --error: #D64545;
-  --success: #6BAA52;
+  --success: #25650c;
   --warning: #E8B04C;
 
   /* Base */
-  --background: #f5edd5;
+  --background: #e8e8e8;
   --foreground: #1A1A1A;
+  --white: #f8f8f8;
   --radius: 0.75rem;
 }
 
@@ -35,10 +36,10 @@
   --secondary-dark: #E6F1D5;
 
   --error: #E85555;
-  --success: #7BC261;
+  --success: #25650c;
   --warning: #F0C05C;
 
-  --background: #1A1A1A;
+  --background: #e8e8e8;
   --foreground: #F5F5F5;
 }
 

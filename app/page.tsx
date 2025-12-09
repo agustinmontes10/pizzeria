@@ -10,12 +10,14 @@ import type { Product } from "@/types/product"
 import { toast } from "sonner"
 import { CartButton } from "@/components/cart-button"
 import { CartDrawer } from "@/components/cart-drawer"
+import { useCart } from "@/context/cart-context"
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const { items } = useCart()
 
   useEffect(() => {
     async function loadProducts() {
@@ -55,7 +57,7 @@ export default function HomePage() {
               <p className="text-foreground/60">Cargando productos...</p>
             </div>
           ) : (
-            <ProductGrid products={filteredProducts} />
+            <ProductGrid products={filteredProducts} items={items} />
           )}
         </section>
       </main>

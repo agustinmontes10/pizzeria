@@ -254,13 +254,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           ))}
 
           {step === 2 && (
-            <form onSubmit={handleSendOrder} className="space-y-4">
+            <form onSubmit={handleSendOrder} className="space-y-6">
               <h3 className="text-xl font-bold text-foreground mb-4">Información del pedido</h3>
 
-              <div className="space-y-4">
+              <div className="flex flex-col gap-8">
                 {/* Nombre */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
+                  <label htmlFor="name" className="block text-md font-medium text-foreground mb-1">
                     Nombre completo *
                   </label>
                   <input
@@ -277,9 +277,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                 {/* Método de pago */}
                 <div>
-                  <p className="block text-sm font-medium text-foreground mb-2">Método de pago *</p>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2">
+                  <p className="block text-md font-medium text-foreground mb-2">Método de pago *</p>
+                  <div className="flex gap-6 gap-x-3 gap-y-1 justify-around">
+                    <label className={`flex items-center gap-2 px-4 py-2 ${formData.paymentMethod === 'efectivo' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -290,7 +290,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       />
                       <span>Efectivo</span>
                     </label>
-                    <label className="flex items-center space-x-2">
+                    <label className={`flex items-center gap-2 px-4 py-2 ${formData.paymentMethod === 'transferencia' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -306,7 +306,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                 {/* Fecha de entrega */}
                 <div>
-                  <label htmlFor="selectedDate" className="block text-sm font-medium text-foreground mb-1">
+                  <label htmlFor="selectedDate" className="block text-md font-medium text-foreground mb-1">
                     Fecha de entrega *
                   </label>
                   <input
@@ -323,7 +323,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                 {/* Horarios disponibles */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
+                  <label className="block text-md font-medium text-foreground mb-2">
                     Hora de entrega *
                   </label>
 
@@ -389,9 +389,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                 {/* Tipo de envío */}
                 <div>
-                  <p className="block text-sm font-medium text-foreground mb-2">Tipo de envío *</p>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2">
+                  <p className="block text-md font-medium text-foreground mb-2">Tipo de envío *</p>
+                  <div className="flex gap-6 gap-x-3 gap-y-1 justify-around">
+                    <label className={`flex items-center gap-2 px-4 py-2 ${formData.deliveryType === 'retiro' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
                       <input
                         type="radio"
                         name="deliveryType"
@@ -402,7 +402,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       />
                       <span>Retiro en local</span>
                     </label>
-                    <label className="flex items-center space-x-2">
+                    <label className={`flex items-center gap-2 px-4 py-2 ${formData.deliveryType === 'delivery' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
                       <input
                         type="radio"
                         name="deliveryType"
@@ -439,7 +439,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </button>
 
                 <button
-                  onClick={clearCart}
+                  onClick={() => { clearCart(); onClose() }}
                   className="w-full bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold py-2 px-4 rounded-md transition-colors"
                 >
                   Vaciar carrito

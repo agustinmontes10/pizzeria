@@ -3,23 +3,37 @@
 import type { Product } from "@/types/product"
 import Image from "next/image"
 import { useCart } from "@/context/cart-context"
+import { useState } from "react"
 
 interface ProductCardProps {
   product: Product
+  quantity: number
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, quantity }: ProductCardProps) {
   const { addToCart } = useCart()
+  const [buttonState, setButtonState] = useState<"idle" | "loading" | "success">("idle")
 
   const handleAddToCart = () => {
-    if (product.available) {
-      addToCart(product)
+    if (product.available && buttonState === "idle") {
+      setButtonState("loading")
+
+      // Simulate loading/animation time
+      setTimeout(() => {
+        addToCart(product)
+        setButtonState("success")
+
+        // Reset to idle after showing success state
+        setTimeout(() => {
+          setButtonState("idle")
+        }, 1500)
+      }, 800)
     }
   }
 
   return (
     <article className="bg-secondary-light rounded-lg overflow-hidden shadow-lg shadow-secondary-light hover:shadow-xl transition-shadow duration-300 relative">
-      <div className="relative w-full aspect-square">
+      <div className="relative w-full aspect-square h-[300px]">
         <Image
           src={product.imageUrl || "/placeholder.svg"}
           alt={product.name}
@@ -45,13 +59,37 @@ export function ProductCard({ product }: ProductCardProps) {
 
         <button
           onClick={handleAddToCart}
-          disabled={!product.available}
-          className="w-full mt-4 bg-primary-medium hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
+          disabled={!product.available || buttonState !== "idle"}
+          className={`w-full mt-4 font-semibold py-3 px-4 rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative z-10 overflow-hidden ${buttonState === "success"
+            ? "bg-success text-white"
+            : "bg-primary-medium hover:bg-primary-dark text-white"
+            }`}
         >
-          {product.available ? "Agregar al carrito" : "No disponible"}
+          {/* Background fill animation */}
+          <div
+            className={`absolute inset-0 bg-primary-dark transition-all duration-800 ease-out ${buttonState === "loading" ? "w-full" : "w-0"
+              }`}
+          />
+
+          {/* Button Text */}
+          <span className="relative z-10">
+            {buttonState === "loading"
+              ? "Agregando.."
+              : buttonState === "success"
+                ? "¡Agregado!"
+                : product.available
+                  ? "Agregar al carrito"
+                  : "No disponible"
+            }
+          </span>
         </button>
       </div>
 
+      {quantity > 0 && (
+        <div className="absolute w-15 h-15 -top-1 -left-1 pointer-events-none z-20 bg-primary-medium text-white  rounded-br-lg shadow-lg shadow-secondary-light flex items-center justify-center animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 duration-500">
+          <p className="font-bold">{quantity}</p>
+        </div>
+      )}
 
     </article>
   )

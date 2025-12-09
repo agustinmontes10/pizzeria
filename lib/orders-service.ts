@@ -9,6 +9,7 @@ import {
     query,
     orderBy,
     onSnapshot,
+    where,
 } from "firebase/firestore"
 import { db } from "./firebase"
 import { Order } from "@/types/order"
@@ -85,15 +86,24 @@ export async function deleteOrder(id: string): Promise<void> {
 }
 
 // Escuchar cambios en las ordenes
-export function listenToOrders(callback: (orders: Order[]) => void) {
-  const q = query(collection(db, ORDERS_COLLECTION), orderBy("hour"))
+export function listenToOrders(callback: (orders: Order[]) => void, date?: string) {
+    let q = query(collection(db, ORDERS_COLLECTION), orderBy("hour"))
 
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Order[]
+    if (date) {
+        // Quitamos el orderBy del query para evitar el error de índice compuesto
+        // Ordenaremos los resultados en el cliente
+        q = query(collection(db, ORDERS_COLLECTION), where("date", "==", date))
+    }
 
-    callback(data)
-  })
+    return onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as Order[]
+
+        // Ordenamos por hora en el cliente
+        data.sort((a, b) => a.hour.localeCompare(b.hour))
+
+        callback(data)
+    })
 }
