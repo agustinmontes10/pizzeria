@@ -129,7 +129,25 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       }
 
       // 4) Si la reserva funciona, crear la orden
-      await createOrder(order)
+      // 4) Si la reserva funciona, crear la orden
+      const orderId = await createOrder(order)
+
+      // 5) Enviar mensaje por WhatsApp
+      const phoneNumber = "2983586285" // Reemplazar con el número del negocio
+      const message = `*Nuevo Pedido!* 🍕
+
+      *Nombre:* ${formData.name}
+      *Pedido:*
+      ${items.map(item => `- ${item.quantity}x ${item.name}`).join('\n')}
+
+      *Total:* $${totalPrice.toFixed(2)}
+      *Pago:* ${formData.paymentMethod}
+      *Entrega:* ${formData.deliveryType}
+      *Hora:* ${formData.deliveryTime}
+      *Fecha:* ${formData.selectedDate}`
+
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+      window.open(whatsappUrl, '_blank')
 
       // 5) Reset de estados
       clearCart()

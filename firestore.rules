@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // PRODUCTOS
+    match /products/{productId} {
+      allow read: if true;
+      // Necesitamos permitir update público para que el cliente pueda descontar el stock al comprar
+      allow update: if true; 
+      allow create, delete: if request.auth != null;
+    }
+    
+    // ORDENES
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+    
+    // SCHEDULES (Horarios)
+    match /schedules/{dateId} {
+      allow read: if true;
+      // Necesitamos permitir update público para que el cliente pueda reservar el slot (incrementar bookedPizzas)
+      allow update: if true;
+      allow create, delete: if request.auth != null;
+    }
+  }
+}
