@@ -66,6 +66,7 @@ export function ProductsTable({
               <TableHead>Descripción</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Precio</TableHead>
+              <TableHead>Stock</TableHead>
               <TableHead>Disponible</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -73,7 +74,7 @@ export function ProductsTable({
           <TableBody>
             {products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No hay productos. Crea uno nuevo para comenzar.
                 </TableCell>
               </TableRow>
@@ -98,6 +99,7 @@ export function ProductsTable({
                     <span className="capitalize">{product.category}</span>
                   </TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${product.available

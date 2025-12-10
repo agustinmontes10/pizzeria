@@ -6,4 +6,5 @@ export interface Product {
   imageUrl: string
   category: "pizza" | "bebida" | "postre"
   available: boolean
+  stock: number
 }

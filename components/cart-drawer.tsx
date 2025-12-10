@@ -7,6 +7,7 @@ import { createOrder } from "@/lib/orders-service"
 import { Order } from "@/types/order"
 import { getTodayDateString } from "@/utils"
 import { getAvailableTimeSlotsForOrder, AvailableTimeSlot, bookSlots } from "@/lib/schedule-service"
+import { verifyAndDecrementStock } from "@/lib/products-service"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -99,12 +100,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     }
 
     try {
+      // 0) Verificar y descontar stock
+      await verifyAndDecrementStock(items.map(item => ({ id: item.id, quantity: item.quantity })))
+
       // 1) Calcular cantidad de pizzas del pedido
       const totalPizzas = items.reduce((acc, item) => acc + item.quantity, 0)
 
       // 2) Reservar slots ANTES de crear la orden
       console.log('Reservando slots:', selectedSlot.slotIds)
-      await bookSlots(selectedSlot.slotIds)
+      try {
+        await bookSlots(selectedSlot.slotIds)
+      } catch (error) {
+        // Si falla la reserva de slots, deberíamos devolver el stock (TODO: Implementar rollback real)
+        throw error
+      }
 
       // 3) Construir objeto order SIN id todavía (id lo genera Firestore)
       const order: Omit<Order, "id"> = {
@@ -120,7 +129,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       }
 
       // 4) Si la reserva funciona, crear la orden
-      const orderId = await createOrder(order)
+      await createOrder(order)
 
       // 5) Reset de estados
       clearCart()
@@ -146,20 +155,24 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         alert('El horario seleccionado ya no está disponible. Por favor selecciona otro horario.')
         // Recargar slots disponibles
         const totalPizzas = items.reduce((sum, item) => sum + item.quantity, 0)
-        const slots = await getAvailableTimeSlotsForOrder(
-          formData.selectedDate,
-          totalPizzas,
-          5
-        )
-        setAvailableSlots(slots)
+        try {
+          const slots = await getAvailableTimeSlotsForOrder(
+            formData.selectedDate,
+            totalPizzas,
+            5
+          )
+          setAvailableSlots(slots)
+        } catch (e) { console.error(e) }
         setSelectedSlot(null)
         setFormData(prev => ({ ...prev, deliveryTime: '' }))
       } else if (error.message?.includes('no existe')) {
         alert('Error: Los horarios han cambiado. Por favor selecciona nuevamente.')
         setSelectedSlot(null)
         setFormData(prev => ({ ...prev, deliveryTime: '' }))
+      } else if (error.toString().includes('No hay suficiente stock')) {
+        alert(error.message || "No hay suficiente stock para uno de los productos.")
       } else {
-        alert('Hubo un error al procesar tu pedido. Inténtalo nuevamente.')
+        alert('Hubo un error al procesar tu pedido. Inténtalo nuevamente: ' + (error.message || error))
       }
     }
   }

@@ -14,8 +14,12 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
   const { addToCart } = useCart()
   const [buttonState, setButtonState] = useState<"idle" | "loading" | "success">("idle")
 
+  const isOutOfStock = (product.stock || 0) <= 0
+  const isMaxStockReached = quantity >= (product.stock || 0)
+  const isAvailable = product.available && !isOutOfStock
+
   const handleAddToCart = () => {
-    if (product.available && buttonState === "idle") {
+    if (isAvailable && !isMaxStockReached && buttonState === "idle") {
       setButtonState("loading")
 
       // Simulate loading/animation time
@@ -46,6 +50,11 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
             <span className="bg-error text-white px-4 py-2 rounded-md font-semibold">No disponible</span>
           </div>
         )}
+        {product.available && isOutOfStock && (
+          <div className="absolute inset-0 bg-foreground/70 flex items-center justify-center">
+            <span className="bg-error text-white px-4 py-2 rounded-md font-semibold">Agotado</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-secondary-dark to-transparent pointer-events-none" />
       </div>
 
@@ -56,10 +65,11 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
         </div>
 
         <p className="text-white/80 text-sm leading-relaxed">{product.description}</p>
+        <p className="text-xs text-white/60 mt-1">Stock: {product.stock || 0}</p>
 
         <button
           onClick={handleAddToCart}
-          disabled={!product.available || buttonState !== "idle"}
+          disabled={!isAvailable || isMaxStockReached || buttonState !== "idle"}
           className={`w-full mt-4 font-semibold py-3 px-4 rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative z-10 overflow-hidden ${buttonState === "success"
             ? "bg-success text-white"
             : "bg-primary-medium hover:bg-primary-dark text-white"
@@ -77,9 +87,13 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
               ? "Agregando.."
               : buttonState === "success"
                 ? "¡Agregado!"
-                : product.available
-                  ? "Agregar al carrito"
-                  : "No disponible"
+                : !product.available
+                  ? "No disponible"
+                  : isOutOfStock
+                    ? "Sin Stock"
+                    : isMaxStockReached
+                      ? "Limitado por Stock"
+                      : "Agregar al carrito"
             }
           </span>
         </button>

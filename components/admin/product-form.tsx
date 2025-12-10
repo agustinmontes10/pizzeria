@@ -31,6 +31,7 @@ const productSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
   price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
+  stock: z.number().min(0, "El stock debe ser mayor o igual a 0").default(0),
   category: z.enum(["pizza", "bebida", "postre"]),
   available: z.boolean(),
   imageUrl: z
@@ -72,6 +73,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
       name: product?.name || "",
       description: product?.description || "",
       price: product?.price || 0,
+      stock: product?.stock || 0,
       category: product?.category || "pizza",
       available: product?.available ?? true,
       imageUrl: product?.imageUrl || "",
@@ -84,6 +86,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         name: product.name,
         description: product.description,
         price: product.price,
+        stock: product.stock,
         category: product.category,
         available: product.available,
         imageUrl: product.imageUrl,
@@ -151,7 +154,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="price"
@@ -165,6 +168,26 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="stock"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stock</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="1"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                   />
                 </FormControl>
                 <FormMessage />
