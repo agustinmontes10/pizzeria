@@ -37,7 +37,7 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
 
   return (
     <article className="bg-secondary-light rounded-lg overflow-hidden shadow-lg shadow-secondary-light hover:shadow-xl transition-shadow duration-300 relative">
-      <div className="relative w-full aspect-square h-[300px]">
+      <div className="relative w-full aspect-square h-[375px]">
         <Image
           src={product.imageUrl || "/placeholder.svg"}
           alt={product.name}

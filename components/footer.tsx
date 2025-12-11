@@ -7,13 +7,12 @@ export function Footer() {
 
           <div>
             <h4 className="font-semibold mb-3">Horario</h4>
-            <p className="text-white/80">Lunes a Viernes: 12:00 - 23:00</p>
-            <p className="text-white/80">Sábados y Domingos: 12:00 - 00:00</p>
+            <p className="text-white/80">Jueves a Domingo: 20:00 - 23:30</p>
           </div>
 
           <div>
             <h4 className="font-semibold mb-3">Contacto</h4>
-            <p className="text-white/80">📞 +34 123 456 789</p>
+            <p className="text-white/80">📞 2983 388452</p>
           </div>
         </div>
 
