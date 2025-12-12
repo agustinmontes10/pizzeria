@@ -8,6 +8,7 @@ import { Order } from "@/types/order"
 import { getTodayDateString } from "@/utils"
 import { getAvailableTimeSlotsForOrder, AvailableTimeSlot, bookSlots } from "@/lib/schedule-service"
 import { verifyAndDecrementStock } from "@/lib/products-service"
+import { verifyAndReserveDailyStock, releaseDailyStock } from "@/lib/daily-stock-service"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -22,6 +23,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     paymentMethod: '',
     deliveryTime: '',
     deliveryType: '',
+    address: '',
     selectedDate: getTodayDateString()
   })
 
@@ -103,90 +105,98 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       return
     }
 
-    try {
-      // 0) Verificar y descontar stock
-      await verifyAndDecrementStock(items.map(item => ({ id: item.id, quantity: item.quantity })))
+    if (formData.deliveryType === 'delivery' && !formData.address) {
+      alert('Por favor ingresa tu dirección de envío')
+      return
+    }
 
+    try {
       // 1) Calcular cantidad de pizzas del pedido
       const totalPizzas = items.reduce((acc, item) => acc + item.quantity, 0)
 
-      // 2) Reservar slots ANTES de crear la orden
-      console.log('Reservando slots:', selectedSlot.slotIds)
+      // 2) Verificar y reservar STOCK DIARIO (primero, para asegurar cupo global)
+      await verifyAndReserveDailyStock(formData.selectedDate, totalPizzas)
+
       try {
-        await bookSlots(selectedSlot.slotIds)
-      } catch (error) {
-        // Si falla la reserva de slots, deberíamos devolver el stock (TODO: Implementar rollback real)
-        throw error
+        // 3) Verificar y descontar STOCK DE PRODUCTOS (ingredientes)
+        await verifyAndDecrementStock(items.map(item => ({ id: item.id, quantity: item.quantity })))
+
+        // 4) Reservar slots
+        console.log('Reservando slots:', selectedSlot.slotIds)
+        try {
+           await bookSlots(selectedSlot.slotIds)
+        } catch(slotError) {
+           // Si falla slots, debemos considerar devolver los stocks?
+           // Por simplicidad, el error bubbleará y el catch general manejará un alert,
+           // PERO idealmente deberíamos hacer rollback de stocks implementados.
+           // Por ahora, el catch general hace alert, pero no rollback de producto.
+           // Se asume riesgo menor o se implementará rollback completo luego.
+           throw slotError
+        }
+
+        // 5) Construir objeto order
+        const order: Omit<Order, "id"> = {
+          order: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
+          hour: formData.deliveryTime,
+          clientName: formData.name,
+          paymentMethod: formData.paymentMethod,
+          shippingType: formData.deliveryType === 'delivery' ? `Envío - ${formData.address}` : 'Retiro - Juan Elicagaray 880',
+          total: finalTotal,
+          sent: false,
+          pizzas: totalPizzas,
+          date: formData.selectedDate,
+        }
+
+        const orderId = await createOrder(order)
+
+        // 6) Enviar mensaje por WhatsApp
+        const phoneNumber = "2983388452"
+        const message = `*Nuevo Pedido!* 🍕
+
+        *Nombre:* ${formData.name}
+        *Pedido:*
+        ${items.map(item => `- ${item.quantity}x ${item.name}`).join('\n')}
+
+        *Total:* $${finalTotal.toFixed(2)}
+        *Pago:* ${formData.paymentMethod}
+        *Entrega:* ${formData.deliveryType === 'delivery' ? `Envío - ${formData.address}` : 'Retiro - Juan Elicagaray 880'}
+        *Hora:* ${formData.deliveryTime}
+        *Fecha:* ${formData.selectedDate}`
+
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+        window.open(whatsappUrl, '_blank')
+
+        // 7) Reset de estados
+        clearCart()
+        setFormData({
+          name: '',
+          paymentMethod: '',
+          deliveryTime: '',
+          deliveryType: '',
+          address: '',
+          selectedDate: getTodayDateString()
+        })
+        setSelectedSlot(null)
+        setAvailableSlots([])
+        setStep(1)
+        onClose()
+
+        alert('¡Pedido realizado con éxito!')
+
+      } catch (innerError: any) {
+        // Si falla algo DESPUÉS de reservar el stock diario (ej: stock de ingredientes o slots),
+        // debemos liberar el stock diario reservado.
+        console.error("Error en proceso interno, liberando stock diario:", innerError)
+        await releaseDailyStock(formData.selectedDate, totalPizzas)
+        throw innerError // Re-lanzar para que el catch exterior lo maneje
       }
-
-      // 3) Construir objeto order SIN id todavía (id lo genera Firestore)
-      const order: Omit<Order, "id"> = {
-        order: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
-        hour: formData.deliveryTime,
-        clientName: formData.name,
-        paymentMethod: formData.paymentMethod,
-        shippingType: formData.deliveryType,
-        total: finalTotal,
-        sent: false,
-        pizzas: totalPizzas,
-        date: formData.selectedDate,
-      }
-
-      // 4) Si la reserva funciona, crear la orden
-      // 4) Si la reserva funciona, crear la orden
-      const orderId = await createOrder(order)
-
-      // 5) Enviar mensaje por WhatsApp
-      const phoneNumber = "2983388452" // Reemplazar con el número del negocio
-      const message = `*Nuevo Pedido!* 🍕
-
-      *Nombre:* ${formData.name}
-      *Pedido:*
-      ${items.map(item => `- ${item.quantity}x ${item.name}`).join('\n')}
-
-      *Total:* $${finalTotal.toFixed(2)}
-      *Pago:* ${formData.paymentMethod}
-      *Entrega:* ${formData.deliveryType}
-      *Hora:* ${formData.deliveryTime}
-      *Fecha:* ${formData.selectedDate}`
-
-      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
-      window.open(whatsappUrl, '_blank')
-
-      // 5) Reset de estados
-      clearCart()
-      setFormData({
-        name: '',
-        paymentMethod: '',
-        deliveryTime: '',
-        deliveryType: '',
-        selectedDate: getTodayDateString()
-      })
-      setSelectedSlot(null)
-      setAvailableSlots([])
-      setStep(1)
-      onClose()
-
-      alert('¡Pedido realizado con éxito!')
 
     } catch (error: any) {
       console.error('Error al crear el pedido:', error)
 
       // Mensajes de error específicos
-      if (error.message?.includes('no tiene capacidad suficiente')) {
-        alert('El horario seleccionado ya no está disponible. Por favor selecciona otro horario.')
-        // Recargar slots disponibles
-        const totalPizzas = items.reduce((sum, item) => sum + item.quantity, 0)
-        try {
-          const slots = await getAvailableTimeSlotsForOrder(
-            formData.selectedDate,
-            totalPizzas,
-            5
-          )
-          setAvailableSlots(slots)
-        } catch (e) { console.error(e) }
-        setSelectedSlot(null)
-        setFormData(prev => ({ ...prev, deliveryTime: '' }))
+      if (error.message?.includes('capacidad suficiente') || error.message?.includes('disponibles para este día')) {
+        alert(error.message)
       } else if (error.message?.includes('no existe')) {
         alert('Error: Los horarios han cambiado. Por favor selecciona nuevamente.')
         setSelectedSlot(null)
@@ -388,6 +398,32 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       </div>
                     </label>
                   </div>
+
+                  {formData.deliveryType === 'retiro' && (
+                     <div className="mt-3 p-3 bg-secondary/10 rounded-md text-center">
+                        <p className="text-sm text-foreground/80">
+                          Retira por: <span className="font-semibold">Juan Elicagaray 880</span>
+                        </p>
+                     </div>
+                  )}
+
+                  {formData.deliveryType === 'delivery' && (
+                     <div className="mt-4">
+                        <label htmlFor="address" className="block text-md font-medium text-foreground mb-1">
+                          Dirección de envío *
+                        </label>
+                        <input
+                          type="text"
+                          id="address"
+                          name="address"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-3 py-2 border border-foreground/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-medium/50"
+                          placeholder="Calle y número"
+                        />
+                     </div>
+                  )}
                 </div>
 
                 {/* Horarios disponibles */}

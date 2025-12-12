@@ -24,5 +24,12 @@ service cloud.firestore {
       allow update: if true;
       allow create, delete: if request.auth != null;
     }
+
+    // CONTROL DE STOCK DIARIO
+    match /daily_stock/{dayId} {
+      allow read: if true;
+      // Permitimos create/update publico para que el cliente pueda incrementar el contador 'ordered'
+      allow create, update: if true;
+    }
   }
 }
