@@ -19,9 +19,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
-    paymentMethod: 'efectivo',
+    paymentMethod: '',
     deliveryTime: '',
-    deliveryType: 'retiro',
+    deliveryType: '',
     selectedDate: getTodayDateString()
   })
 
@@ -29,6 +29,10 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [availableSlots, setAvailableSlots] = useState<AvailableTimeSlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<AvailableTimeSlot | null>(null)
+
+  const SHIPPING_COST = 2500
+  const shippingCost = formData.deliveryType === 'delivery' ? SHIPPING_COST : 0
+  const finalTotal = totalPrice + shippingCost
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -122,7 +126,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         clientName: formData.name,
         paymentMethod: formData.paymentMethod,
         shippingType: formData.deliveryType,
-        total: totalPrice,
+        total: finalTotal,
         sent: false,
         pizzas: totalPizzas,
         date: formData.selectedDate,
@@ -133,14 +137,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       const orderId = await createOrder(order)
 
       // 5) Enviar mensaje por WhatsApp
-      const phoneNumber = "2983586285" // Reemplazar con el número del negocio
+      const phoneNumber = "2983388452" // Reemplazar con el número del negocio
       const message = `*Nuevo Pedido!* 🍕
 
       *Nombre:* ${formData.name}
       *Pedido:*
       ${items.map(item => `- ${item.quantity}x ${item.name}`).join('\n')}
 
-      *Total:* $${totalPrice.toFixed(2)}
+      *Total:* $${finalTotal.toFixed(2)}
       *Pago:* ${formData.paymentMethod}
       *Entrega:* ${formData.deliveryType}
       *Hora:* ${formData.deliveryTime}
@@ -153,9 +157,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       clearCart()
       setFormData({
         name: '',
-        paymentMethod: 'efectivo',
+        paymentMethod: '',
         deliveryTime: '',
-        deliveryType: 'retiro',
+        deliveryType: '',
         selectedDate: getTodayDateString()
       })
       setSelectedSlot(null)
@@ -418,11 +422,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   </p>
                 </div>
 
+
+
                 {/* Tipo de envío */}
                 <div>
                   <p className="block text-md font-medium text-foreground mb-2">Tipo de envío *</p>
                   <div className="flex gap-6 gap-x-3 gap-y-1 justify-around">
-                    <label className={`flex items-center gap-2 px-4 py-2 ${formData.deliveryType === 'retiro' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
+                    <label className={`flex items-center gap-2 px-4 py-2 cursor-pointer ${formData.deliveryType === 'retiro' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
                       <input
                         type="radio"
                         name="deliveryType"
@@ -433,7 +439,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       />
                       <span>Retiro en local</span>
                     </label>
-                    <label className={`flex items-center gap-2 px-4 py-2 ${formData.deliveryType === 'delivery' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
+                    <label className={`flex items-center gap-2 px-4 py-2 cursor-pointer ${formData.deliveryType === 'delivery' ? 'border-2 text-background bg-success rounded-sm' : ''}`}>
                       <input
                         type="radio"
                         name="deliveryType"
@@ -442,7 +448,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         onChange={handleInputChange}
                         className="text-primary-medium focus:ring-primary-medium"
                       />
-                      <span>Envío a domicilio</span>
+                      <div className="flex flex-col items-center">
+                        <span>Envío a domicilio</span>
+                        {formData.deliveryType === 'delivery' && (
+                          <span className="text-[10px] font-medium opacity-90">(2500 envio)</span>
+                        )}
+                      </div>
                     </label>
                   </div>
                 </div>
@@ -457,7 +468,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <div className="border-t border-foreground/20 p-4 space-y-4">
             <div className="flex justify-between items-center text-lg">
               <span className="font-semibold text-foreground">Total:</span>
-              <span className="font-bold text-2xl text-primary-medium">${totalPrice.toFixed(2)}</span>
+              <span className="font-bold text-2xl text-primary-medium">${finalTotal.toFixed(2)}</span>
             </div>
 
             {step === 1 && (
