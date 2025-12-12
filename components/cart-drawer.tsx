@@ -9,6 +9,7 @@ import { getTodayDateString } from "@/utils"
 import { getAvailableTimeSlotsForOrder, AvailableTimeSlot, bookSlots } from "@/lib/schedule-service"
 import { verifyAndDecrementStock } from "@/lib/products-service"
 import { verifyAndReserveDailyStock, releaseDailyStock } from "@/lib/daily-stock-service"
+import { toast } from "sonner"
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -30,7 +31,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   // Estados para horarios disponibles
   const [availableSlots, setAvailableSlots] = useState<AvailableTimeSlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
+
   const [selectedSlot, setSelectedSlot] = useState<AvailableTimeSlot | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const SHIPPING_COST = 2500
   const shippingCost = formData.deliveryType === 'delivery' ? SHIPPING_COST : 0
@@ -101,14 +104,18 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     e.preventDefault()
 
     if (!formData.name || !formData.deliveryTime || !selectedSlot) {
-      alert('Por favor completa todos los campos obligatorios')
+      toast.error('Por favor completa todos los campos obligatorios')
       return
     }
 
     if (formData.deliveryType === 'delivery' && !formData.address) {
-      alert('Por favor ingresa tu dirección de envío')
+      toast.error('Por favor ingresa tu dirección de envío')
       return
     }
+
+    // Show loading toast
+    const loadingToastId = toast.loading('Realizando pedido...')
+    setIsSubmitting(true)
 
     try {
       // 1) Calcular cantidad de pizzas del pedido
@@ -181,7 +188,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         setStep(1)
         onClose()
 
-        alert('¡Pedido realizado con éxito!')
+        onClose()
+
+        toast.dismiss(loadingToastId)
+        toast.success('¡Pedido realizado con éxito!')
+        setIsSubmitting(false)
 
       } catch (innerError: any) {
         // Si falla algo DESPUÉS de reservar el stock diario (ej: stock de ingredientes o slots),
@@ -193,19 +204,21 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
     } catch (error: any) {
       console.error('Error al crear el pedido:', error)
+      toast.dismiss(loadingToastId) // Dismiss loading toast
 
       // Mensajes de error específicos
       if (error.message?.includes('capacidad suficiente') || error.message?.includes('disponibles para este día')) {
-        alert(error.message)
+        toast.error(error.message)
       } else if (error.message?.includes('no existe')) {
-        alert('Error: Los horarios han cambiado. Por favor selecciona nuevamente.')
+        toast.error('Error: Los horarios han cambiado. Por favor selecciona nuevamente.')
         setSelectedSlot(null)
         setFormData(prev => ({ ...prev, deliveryTime: '' }))
       } else if (error.toString().includes('No hay suficiente stock')) {
-        alert(error.message || "No hay suficiente stock para uno de los productos.")
+        toast.error(error.message || "No hay suficiente stock para uno de los productos.")
       } else {
-        alert('Hubo un error al procesar tu pedido. Inténtalo nuevamente: ' + (error.message || error))
+        toast.error('Hubo un error al procesar tu pedido. Inténtalo nuevamente: ' + (error.message || error))
       }
+      setIsSubmitting(false)
     }
   }
 
@@ -535,9 +548,10 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <>
                 <button
                   onClick={handleSendOrder}
-                  className="w-full bg-primary-medium hover:bg-primary-medium/90 text-white font-bold py-3 px-4 rounded-md transition-colors"
+                  disabled={isSubmitting}
+                  className={`w-full bg-primary-medium hover:bg-primary-medium/90 text-white font-bold py-3 px-4 rounded-md transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Finalizar pedido
+                  {isSubmitting ? 'Procesando...' : 'Finalizar pedido'}
                 </button>
 
                 <button
