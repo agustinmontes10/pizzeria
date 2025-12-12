@@ -356,74 +356,6 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   />
                 </div>
 
-                {/* Horarios disponibles */}
-                <div>
-                  <label className="block text-md font-medium text-foreground mb-2">
-                    Hora de entrega *
-                  </label>
-
-                  {loadingSlots ? (
-                    <div className="text-center py-4 text-foreground/60">
-                      Cargando horarios disponibles...
-                    </div>
-                  ) : availableSlots.length === 0 ? (
-                    <div className="text-center py-4 px-3 bg-foreground/5 rounded-md">
-                      <p className="text-sm text-foreground/60">
-                        No hay horarios disponibles para esta fecha.
-                      </p>
-                      <p className="text-xs text-foreground/60 mt-1">
-                        Intenta seleccionar otra fecha.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {availableSlots.map((slot, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleSlotSelection(slot)}
-                          className={`w-full p-3 border rounded-md text-left transition-all ${selectedSlot?.deliveryTime === slot.deliveryTime
-                            ? 'border-primary-medium bg-primary-medium/10 ring-2 ring-primary-medium/50'
-                            : 'border-foreground/20 hover:border-primary-medium/50 hover:bg-foreground/5'
-                            }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-semibold text-foreground">
-                                Entrega: {slot.deliveryTime}
-                              </p>
-                              <p className="text-xs text-foreground/60">
-                                Preparación inicia: {slot.startTime}
-                              </p>
-                            </div>
-                            {selectedSlot?.deliveryTime === slot.deliveryTime && (
-                              <svg
-                                className="w-5 h-5 text-primary-medium"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Info de pizzas */}
-                  <p className="text-xs text-foreground/60 mt-2">
-                    {items.reduce((sum, item) => sum + item.quantity, 0)} pizza(s) -
-                    Tiempo estimado: {items.reduce((sum, item) => sum + item.quantity, 0) * 5} minutos
-                  </p>
-                </div>
-
-
-
                 {/* Tipo de envío */}
                 <div>
                   <p className="block text-md font-medium text-foreground mb-2">Tipo de envío *</p>
@@ -457,6 +389,80 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     </label>
                   </div>
                 </div>
+
+                {/* Horarios disponibles */}
+                <div>
+                  <label className="block text-md font-medium text-foreground mb-2">
+                    Hora de entrega *
+                  </label>
+
+                  {loadingSlots ? (
+                    <div className="text-center py-4 text-foreground/60">
+                      Cargando horarios disponibles...
+                    </div>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="text-center py-4 px-3 bg-foreground/5 rounded-md">
+                      <p className="text-sm text-foreground/60">
+                        No hay horarios disponibles para esta fecha.
+                      </p>
+                      <p className="text-xs text-foreground/60 mt-1">
+                        Intenta seleccionar otra fecha.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2 max-h-100 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-foreground/20 scrollbar-track-transparent">
+                        {availableSlots.map((slot, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleSlotSelection(slot)}
+                            className={`w-full p-3 border rounded-md text-left transition-all ${selectedSlot?.deliveryTime === slot.deliveryTime
+                              ? 'border-primary-medium bg-primary-medium/10 ring-2 ring-primary-medium/50'
+                              : 'border-foreground/20 hover:border-primary-medium/50 hover:bg-foreground/5'
+                              }`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-semibold text-foreground">
+                                  Entrega: {slot.deliveryTime}
+                                </p>
+                                <p className="text-xs text-foreground/60">
+                                  Preparación inicia: {slot.startTime}
+                                </p>
+                              </div>
+                              {selectedSlot?.deliveryTime === slot.deliveryTime && (
+                                <svg
+                                  className="w-5 h-5 text-primary-medium"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      {availableSlots.length > 3 && (
+                        <p className="text-center text-md text-foreground font-semibold mt-5 animate-pulse">
+                          Desliza para ver más horarios ↓
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {/* Info de pizzas */}
+                  <p className="text-xs text-foreground/60 mt-2">
+                    {items.reduce((sum, item) => sum + item.quantity, 0)} pizza(s) -
+                    Tiempo estimado: {items.reduce((sum, item) => sum + item.quantity, 0) * 5} minutos
+                  </p>
+                </div>
+
               </div>
 
             </form>
