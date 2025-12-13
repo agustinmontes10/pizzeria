@@ -142,7 +142,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           order: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
           hour: formData.deliveryTime,
           clientName: formData.name,
-          paymentMethod: formData.paymentMethod,
+          paymentMethod: formData.paymentMethod === 'transferencia' ? 'Transferencia - alias: napospizza' : formData.paymentMethod,
           shippingType: formData.deliveryType === 'delivery' ? `Envío - ${formData.address}` : 'Retiro - Juan Elicagaray 880',
           total: finalTotal,
           sent: false,
@@ -161,7 +161,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         ${items.map(item => `- ${item.quantity}x ${item.name}`).join('\n')}
 
         *Total:* $${finalTotal.toFixed(2)}
-        *Pago:* ${formData.paymentMethod}
+        *Pago:* ${formData.paymentMethod === 'transferencia' ? 'Transferencia - napospizza' : formData.paymentMethod}
         *Entrega:* ${formData.deliveryType === 'delivery' ? `Envío - ${formData.address}` : 'Retiro - Juan Elicagaray 880'}
         *Hora:* ${formData.deliveryTime}
         *Fecha:* ${formData.selectedDate}`
@@ -366,6 +366,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <span>Transferencia</span>
                     </label>
                   </div>
+                  {formData.paymentMethod === 'transferencia' && (
+                    <div className="mt-3 p-3 bg-secondary/10 rounded-md text-center">
+                      <p className="text-sm text-foreground/80">
+                        Alias: <span className="font-semibold select-all">napospizza</span>
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Fecha de entrega */}
@@ -545,8 +552,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <h3 className="text-2xl font-bold text-foreground">¡Tu pedido está listo!</h3>
 
               <div className="space-y-2 max-w-xs mx-auto text-foreground/80">
-                <p>Tu orden ha sido registrada correctamente.</p>
-                <p className="text-sm">Si no se abrió WhatsApp automáticamente, haz clic en el botón de abajo para enviar los detalles.</p>
+                <p className="text-md">Tu orden ha sido registrada correctamente.</p>
+                <p className="text-md">Si no se abrió WhatsApp automáticamente, haz clic en el botón de abajo para enviar los detalles.</p>
               </div>
 
               {whatsappUrl && (
@@ -598,7 +605,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </button>
 
                 <button
-                  onClick={handleClose}
+                  onClick={() => { clearCart(); handleClose() }}
                   className="w-full bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold py-2 px-4 rounded-md transition-colors"
                 >
                   Vaciar carrito y Cerrar
