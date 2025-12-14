@@ -56,11 +56,23 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       setLoadingSlots(true)
       try {
         const totalPizzas = items.reduce((sum, item) => sum + item.quantity, 0)
-        const slots = await getAvailableTimeSlotsForOrder(
+        let slots = await getAvailableTimeSlotsForOrder(
           formData.selectedDate,
           totalPizzas,
           5 // 5 minutos por pizza
         )
+
+        // Filtrar horarios ya pasados si es el día actual
+        if (formData.selectedDate === getTodayDateString()) {
+          const now = new Date()
+          const currentTotalMinutes = now.getHours() * 60 + now.getMinutes()
+
+          slots = slots.filter(slot => {
+            const [h, m] = slot.deliveryTime.split(':').map(Number)
+            return (h * 60 + m) > currentTotalMinutes
+          })
+        }
+
         setAvailableSlots(slots)
 
         // Si no hay slots disponibles, limpiar selección
