@@ -142,8 +142,8 @@ export default function AdminPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-full max-w-md p-8 bg-[var(--white)] rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold mb-6 text-center">
             Panel de Administración
           </h1>
@@ -154,18 +154,19 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Panel de Administración</h1>
             <p className="text-foreground/60 mt-1">
-              {view === "products" ? "Gestiona los productos" : "Gestiona los horarios"}
+              {view === "products" ? "Gestiona los productos" : view === "orders" ? "Gestiona las órdenes" : "Gestiona los horarios"}
             </p>
           </div>
 
           <div className="flex gap-2">
             <Button
+              className={view === "products" ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
               variant={view === "products" ? "default" : "outline"}
               onClick={() => setView("products")}
             >
@@ -173,6 +174,7 @@ export default function AdminPage() {
             </Button>
 
             <Button
+              className={view === "schedule" ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
               variant={view === "schedule" ? "default" : "outline"}
               onClick={() => setView("schedule")}
             >
@@ -180,6 +182,7 @@ export default function AdminPage() {
             </Button>
 
             <Button
+              className={view === "orders" ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
               variant={view === "orders" ? "default" : "outline"}
               onClick={() => setView("orders")}
             >
@@ -187,7 +190,11 @@ export default function AdminPage() {
             </Button>
 
 
-            <Button variant="outline" onClick={handleSignOut}>
+            <Button 
+                variant="outline" 
+                onClick={handleSignOut}
+                className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+            >
               <LogOut className="h-4 w-4 mr-2" />
               Cerrar Sesión
             </Button>
@@ -195,7 +202,7 @@ export default function AdminPage() {
         </div>
 
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="bg-[var(--white)] rounded-xl shadow-sm border border-black/5 p-6">
           {view === "products" ? (
             <ProductsTable
               products={products}
@@ -205,14 +212,14 @@ export default function AdminPage() {
             />
           ) : view === "orders" ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between bg-secondary-light/10 p-4 rounded-lg">
-                <Button variant="outline" size="icon" onClick={handlePrevDay}>
+              <div className="flex items-center justify-between bg-secondary-light/5 p-4 rounded-lg border border-secondary-light/10">
+                <Button variant="ghost" size="icon" onClick={handlePrevDay} className="hover:bg-secondary-light/10">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h2 className="text-xl font-semibold capitalize">
+                <h2 className="text-xl font-semibold capitalize text-primary-medium">
                   {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
                 </h2>
-                <Button variant="outline" size="icon" onClick={handleNextDay}>
+                <Button variant="ghost" size="icon" onClick={handleNextDay} className="hover:bg-secondary-light/10">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

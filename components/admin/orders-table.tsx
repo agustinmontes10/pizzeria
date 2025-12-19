@@ -93,8 +93,8 @@ export function OrdersTable({ orders, onDelete, onMarkSent }: OrdersTableProps) 
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                       order.sent
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        ? "bg-success/10 text-success border border-success/20"
+                        : "bg-warning/10 text-warning-dark border border-warning/20"
                     }`}
                   >
                     {order.sent ? "Enviado" : "Pendiente"}

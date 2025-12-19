@@ -88,7 +88,7 @@ export function ProductsTable({
     <div className="space-y-6">
       
       {/* Daily Stock Control */}
-      <div className="p-4 border rounded-md bg-secondary/5 flex items-center justify-between">
+      <div className="p-4 border rounded-md bg-secondary-light/5 flex items-center justify-between">
           <div className="flex items-center gap-6">
               <div>
                   <h3 className="font-semibold text-lg">Control de Stock Diario</h3>
@@ -195,9 +195,9 @@ export function ProductsTable({
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${product.available
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border ${product.available
+                        ? "bg-success/10 text-success border-success/20"
+                        : "bg-error/10 text-error border-error/20"
                         }`}
                     >
                       {product.available ? "Disponible" : "No disponible"}

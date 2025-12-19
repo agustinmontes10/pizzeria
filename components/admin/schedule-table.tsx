@@ -130,7 +130,7 @@ export function ScheduleTable() {
 
             {/* CONFIGURACIÓN PARA CREAR SLOTS */}
             {showConfig && (
-                <div className="rounded-lg border p-4 space-y-4 bg-muted/50">
+                <div className="rounded-lg border p-4 space-y-4 bg-secondary-light/5">
                     <h3 className="font-semibold">Configuración de horarios</h3>
 
                     <div className="grid grid-cols-3 gap-4">
@@ -216,9 +216,9 @@ export function ScheduleTable() {
                                     </TableCell>
                                     <TableCell>
                                         <span
-                                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${slot.available
-                                                ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
-                                                : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+                                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium border ${slot.available
+                                                ? "bg-success/10 text-success border-success/20"
+                                                : "bg-error/10 text-error border-error/20"
                                                 }`}
                                         >
                                             {slot.available ? "Disponible" : "Ocupado"}
