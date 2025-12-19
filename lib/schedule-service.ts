@@ -166,6 +166,19 @@ export async function getAvailableTimeSlotsForOrder(
 
         const availableTimeSlots: AvailableTimeSlot[] = []
 
+        // Pre-calcular información de tiempo actual
+        const now = new Date()
+        const currentYear = now.getFullYear()
+        const currentMonth = String(now.getMonth() + 1).padStart(2, "0")
+        const currentDay = String(now.getDate()).padStart(2, "0")
+        const currentDate = `${currentYear}-${currentMonth}-${currentDay}`
+        
+        const currentHours = String(now.getHours()).padStart(2, "0")
+        const currentMinutes = String(now.getMinutes()).padStart(2, "0")
+        const currentTime = `${currentHours}:${currentMinutes}`
+        
+        const isToday = date === currentDate
+
         // Buscar secuencias de slots consecutivos disponibles
         for (let i = 0; i <= allSlots.length - slotsNeeded; i++) {
             const consecutiveSlots = allSlots.slice(i, i + slotsNeeded)
@@ -193,10 +206,15 @@ export async function getAvailableTimeSlotsForOrder(
                 }
             }
 
-            // Si todos los slots están disponibles y son consecutivos, agregar esta opción
+            // Si todos los slots están disponibles y son consecutivos, verificar si el horario es válido
             if (allAvailable && areConsecutive) {
                 const firstSlot = consecutiveSlots[0]
                 const lastSlot = consecutiveSlots[consecutiveSlots.length - 1]
+
+                // Si es hoy, validar que el slot de inicio no sea anterior a la hora actual
+                if (isToday && firstSlot.startTime < currentTime) {
+                    continue
+                }
 
                 availableTimeSlots.push({
                     deliveryTime: lastSlot.endTime, // La hora de entrega es cuando termina el último slot

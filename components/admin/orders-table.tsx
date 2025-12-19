@@ -79,7 +79,7 @@ export function OrdersTable({ orders, onDelete, onMarkSent }: OrdersTableProps) 
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.clientName}</TableCell>
 
-                <TableCell className="max-w-xs truncate">{order.order}</TableCell>
+                <TableCell className="max-w-xs whitespace-normal">{order.order}</TableCell>
 
                 <TableCell>{order.hour}</TableCell>
 
