@@ -25,7 +25,14 @@ export function CartItemComponent({ item }: CartItemProps) {
 
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold text-foreground truncate">{item.name}</h3>
-        <p className="text-primary-medium font-bold">${item.price.toFixed(2)}</p>
+        {item.offerPrice && item.offerPrice > 0 ? (
+          <div className="flex gap-2 items-baseline">
+            <span className="text-xs text-foreground/50 line-through">${item.price.toFixed(2)}</span>
+            <p className="text-primary-medium font-bold">${item.offerPrice.toFixed(2)}</p>
+          </div>
+        ) : (
+          <p className="text-primary-medium font-bold">${item.price.toFixed(2)}</p>
+        )}
 
         <div className="flex items-center gap-2 mt-2">
           <button

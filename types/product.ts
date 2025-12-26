@@ -7,4 +7,5 @@ export interface Product {
   category: "pizza" | "bebida" | "postre"
   available: boolean
   stock: number
+  offerPrice?: number
 }

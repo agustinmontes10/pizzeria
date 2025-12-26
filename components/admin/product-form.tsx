@@ -31,6 +31,8 @@ const productSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
   price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
+
+  offerPrice: z.number().min(0, "El precio de oferta debe ser mayor o igual a 0").optional(),
   stock: z.number().min(0, "El stock debe ser mayor o igual a 0").default(0),
   category: z.enum(["pizza", "bebida", "postre"]),
   available: z.boolean(),
@@ -73,6 +75,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
       name: product?.name || "",
       description: product?.description || "",
       price: product?.price || 0,
+      offerPrice: product?.offerPrice,
       stock: product?.stock || 0,
       category: product?.category || "pizza",
       available: product?.available ?? true,
@@ -86,6 +89,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
         name: product.name,
         description: product.description,
         price: product.price,
+        offerPrice: product.offerPrice,
         stock: product.stock,
         category: product.category,
         available: product.available,
@@ -154,13 +158,13 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Precio</FormLabel>
+                <FormLabel>Precio Normal</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -168,6 +172,30 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="offerPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Precio Oferta (Opcional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    {...field}
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      field.onChange(isNaN(val) ? undefined : val);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />

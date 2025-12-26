@@ -191,7 +191,16 @@ export function ProductsTable({
                   <TableCell>
                     <span className="capitalize">{product.category}</span>
                   </TableCell>
-                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {product.offerPrice && product.offerPrice > 0 ? (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground line-through">${product.price.toFixed(2)}</span>
+                        <span className="font-medium text-primary-medium">${product.offerPrice.toFixed(2)}</span>
+                      </div>
+                    ) : (
+                      <span>${product.price.toFixed(2)}</span>
+                    )}
+                  </TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <span

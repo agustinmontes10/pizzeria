@@ -61,7 +61,16 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
       <div className="relative -top-1 p-4 bg-gradient-to-t from-secondary-light to-secondary-dark">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="text-xl font-bold text-white/80 leading-tight">{product.name}</h3>
-          <span className="text-xl font-bold text-primary-medium whitespace-nowrap">${product.price.toFixed(2)}</span>
+          <div className="flex flex-col items-end text-right">
+            {product.offerPrice && product.offerPrice > 0 ? (
+              <>
+                <span className="text-lg text-white/70 line-through decoration-white/70">${product.price.toFixed(2)}</span>
+                <span className="text-xl font-bold text-primary-medium whitespace-nowrap">${product.offerPrice.toFixed(2)}</span>
+              </>
+            ) : (
+              <span className="text-xl font-bold text-primary-medium whitespace-nowrap">${product.price.toFixed(2)}</span>
+            )}
+          </div>
         </div>
 
         <p className="text-white/80 text-sm leading-relaxed">{product.description}</p>
