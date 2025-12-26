@@ -65,7 +65,7 @@ export function ProductCard({ product, quantity }: ProductCardProps) {
         </div>
 
         <p className="text-white/80 text-sm leading-relaxed">{product.description}</p>
-        <p className="text-xs text-white/60 mt-1">Stock: {product.stock || 0}</p>
+        {/* <p className="text-xs text-white/60 mt-1">Stock: {product.stock || 0}</p> */}
 
         <button
           onClick={handleAddToCart}
