@@ -74,7 +74,8 @@ export function ScheduleTable() {
                 endHour,
                 intervalMinutes,
                 1,
-                startMinute
+                startMinute,
+                endMinute
             )
             toast.success(`Se crearon ${createdIds.length} horarios`)
             setShowConfig(false)

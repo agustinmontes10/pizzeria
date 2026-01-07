@@ -116,7 +116,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   async function handleSendOrder(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!formData.name || !formData.deliveryTime || !selectedSlot) {
+    if (!formData.name || !formData.deliveryTime || !selectedSlot || !formData.paymentMethod || !formData.deliveryType) {
       toast.error('Por favor completa todos los campos obligatorios')
       return
     }

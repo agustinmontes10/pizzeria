@@ -118,8 +118,19 @@ export default function AdminPage() {
 
   useEffect(() => {
     const dateStr = format(selectedDate, "yyyy-MM-dd")
+    let previousCount: number | null = null
+
     const unsubscribe = listenToOrders((data) => {
       console.log('data', data)
+      
+      // Si ya teníamos datos previos (no es la primera carga) y hay más órdenes que antes
+      if (previousCount !== null && data.length > previousCount) {
+        const audio = new Audio("/nuevoPedido.mp3")
+        audio.play().catch(error => console.error("Error reproduciendo audio:", error))
+        toast.info("¡Nueva orden recibida!")
+      }
+
+      previousCount = data.length
       setOrders(data)
     }, dateStr)
 

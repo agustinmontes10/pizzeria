@@ -29,14 +29,15 @@ export async function createDaySlots(
     endHour: number,
     intervalMinutes: number,
     maxPizzasPerSlot: number = 1,
-    startMinute: number = 0
+    startMinute: number = 0,
+    endMinute: number = 0
 ): Promise<string[]> {
     try {
         const slots: Omit<TimeSlot, "id">[] = []
 
-        // Convertir a minutos totales para validación
+        // Convertir a minutos totales para validación y cálculos
         const startTotalMinutes = startHour * 60 + startMinute
-        const endTotalMinutes = endHour * 60
+        const endTotalMinutes = endHour * 60 + endMinute
 
         // Validar que la hora de inicio sea menor que la hora de fin
         if (startTotalMinutes >= endTotalMinutes) {
@@ -48,28 +49,27 @@ export async function createDaySlots(
             throw new Error("El intervalo debe ser entre 1 y 60 minutos")
         }
 
-        // Generar slots para el día
-        let currentHour = startHour
-        let currentMinute = startMinute
+        // Generar slots usando minutos totales
+        let currentMinutes = startTotalMinutes
 
-        while (currentHour < endHour || (currentHour === endHour && currentMinute === 0)) {
-            const startTime = `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}`
+        while (currentMinutes < endTotalMinutes) {
+            // Calcular fin del slot actual
+            const nextMinutes = currentMinutes + intervalMinutes
 
-            // Calcular hora de fin del slot
-            let endMinute = currentMinute + intervalMinutes
-            let endSlotHour = currentHour
-
-            if (endMinute >= 60) {
-                endSlotHour = currentHour + Math.floor(endMinute / 60)
-                endMinute = endMinute % 60
-            }
-
-            const endTime = `${String(endSlotHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`
-
-            // No crear slot si el tiempo de fin excede la hora límite
-            if (endSlotHour > endHour || (endSlotHour === endHour && endMinute > 0)) {
+            // Si el slot termina después de la hora límite, no lo creamos
+            if (nextMinutes > endTotalMinutes) {
                 break
             }
+
+            // Formatear hora de inicio
+            const startH = Math.floor(currentMinutes / 60)
+            const startM = currentMinutes % 60
+            const startTime = `${String(startH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`
+
+            // Formatear hora de fin
+            const endH = Math.floor(nextMinutes / 60)
+            const endM = nextMinutes % 60
+            const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`
 
             slots.push({
                 date,
@@ -81,11 +81,7 @@ export async function createDaySlots(
             })
 
             // Avanzar al siguiente slot
-            currentMinute += intervalMinutes
-            if (currentMinute >= 60) {
-                currentHour += Math.floor(currentMinute / 60)
-                currentMinute = currentMinute % 60
-            }
+            currentMinutes = nextMinutes
         }
 
         // Guardar todos los slots en Firestore
