@@ -45,6 +45,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [predictedHomeScore, setPredictedHomeScore] = useState<string>("")
   const [predictedAwayScore, setPredictedAwayScore] = useState<string>("")
   const [predictedPlayerScores, setPredictedPlayerScores] = useState<boolean | undefined>(undefined)
+  const [betSaved, setBetSaved] = useState(false)
 
   const SHIPPING_COST = 2500
   const shippingCost = formData.deliveryType === 'delivery' ? SHIPPING_COST : 0
@@ -163,7 +164,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           order: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
           hour: formData.deliveryTime,
           clientName: formData.name,
-          paymentMethod: formData.paymentMethod === 'transferencia' ? 'Transferencia - alias: napospizza' : formData.paymentMethod,
+          paymentMethod: formData.paymentMethod === 'transferencia' ? 'Transferencia - alias: napospizzas' : formData.paymentMethod,
           shippingType: formData.deliveryType === 'delivery' ? `Envío - ${formData.address}` : 'Retiro - Juan Elicagaray 880',
           total: finalTotal,
           sent: false,
@@ -173,33 +174,41 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
         const orderId = await createOrder(order)
 
-        // Save bet if one was chosen
+        // Save bet if one was chosen — re-validar que el partido no haya arrancado
         if (betType !== null && nextMatch) {
-          await createBet({
-            orderId,
-            clientName: formData.name,
-            matchId: nextMatch.id,
-            homeTeam: nextMatch.homeTeam,
-            awayTeam: nextMatch.awayTeam,
-            matchDate: nextMatch.matchDate,
-            betType,
-            ...(betType === 1 && {
-              predictedHomeScore: Number(predictedHomeScore),
-              predictedAwayScore: Number(predictedAwayScore),
-            }),
-            ...(betType === 2 && {
-              predictedPlayerScores,
-              betPlayerName: nextMatch.betPlayer,
-              betPlayerDiscount: nextMatch.betPlayerDiscount ?? 30,
-            }),
-            createdAt: new Date().toISOString(),
-            orderTotal: finalTotal,
-          })
+          const matchStillValid = await getNextMatch()
+          if (!matchStillValid || matchStillValid.id !== nextMatch.id) {
+            // El partido ya arrancó mientras el usuario completaba el formulario
+            toast.error(`⚽ El partido ${nextMatch.homeTeam} vs ${nextMatch.awayTeam} ya arrancó. Tu apuesta no fue registrada.`, { duration: 6000 })
+            setBetSaved(false)
+          } else {
+            await createBet({
+              orderId,
+              clientName: formData.name,
+              matchId: nextMatch.id,
+              homeTeam: nextMatch.homeTeam,
+              awayTeam: nextMatch.awayTeam,
+              matchDate: nextMatch.matchDate,
+              betType,
+              ...(betType === 1 && {
+                predictedHomeScore: Number(predictedHomeScore),
+                predictedAwayScore: Number(predictedAwayScore),
+              }),
+              ...(betType === 2 && {
+                predictedPlayerScores,
+                betPlayerName: nextMatch.betPlayer,
+                betPlayerDiscount: nextMatch.betPlayerDiscount ?? 30,
+              }),
+              createdAt: new Date().toISOString(),
+              orderTotal: finalTotal,
+            })
+            setBetSaved(true)
+          }
         }
 
-        const betLine = betType === 1 && nextMatch
+        const betLine = betSaved && betType === 1 && nextMatch
           ? `\n*Apuesta:* Resultado exacto ${nextMatch.homeTeam} ${predictedHomeScore}-${predictedAwayScore} ${nextMatch.awayTeam}`
-          : betType === 2 && nextMatch
+          : betSaved && betType === 2 && nextMatch
           ? `\n*Apuesta:* ${nextMatch.betPlayer} ${predictedPlayerScores ? 'anota' : 'no anota'} vs ${nextMatch.awayTeam}`
           : ''
 
@@ -211,7 +220,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         ${items.map(item => `- ${item.quantity}x ${item.name}`).join('\n')}
 
         *Total:* $${finalTotal.toFixed(2)}
-        *Pago:* ${formData.paymentMethod === 'transferencia' ? 'Transferencia - napospizza' : formData.paymentMethod}
+        *Pago:* ${formData.paymentMethod === 'transferencia' ? 'Transferencia - napospizzas' : formData.paymentMethod}
         *Entrega:* ${formData.deliveryType === 'delivery' ? `Envío - ${formData.address}` : 'Retiro - Juan Elicagaray 880'}
         *Hora:* ${formData.deliveryTime}
         *Fecha:* ${formData.selectedDate}${betLine}`
@@ -270,6 +279,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     setPredictedHomeScore("")
     setPredictedAwayScore("")
     setPredictedPlayerScores(undefined)
+    setBetSaved(false)
     setNextMatch(null)
     onClose()
   }
@@ -366,7 +376,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   </div>
                   {formData.paymentMethod === 'transferencia' && (
                     <div className="mt-3 p-3 bg-secondary/10 rounded-md text-center">
-                      <p className="text-sm text-foreground/80">Alias: <span className="font-semibold select-all">napospizza</span></p>
+                      <p className="text-sm text-foreground/80">Alias: <span className="font-semibold select-all">napospizzas</span></p>
                     </div>
                   )}
                 </div>
@@ -644,9 +654,15 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <div className="space-y-2 max-w-xs mx-auto text-foreground/80">
                 <p className="text-md">Tu orden ha sido registrada correctamente.</p>
                 {betType !== null && nextMatch && (
-                  <p className="text-sm text-primary-medium font-medium mt-2">
-                    ⚽ Tu apuesta fue registrada. ¡Mucha suerte!
-                  </p>
+                  betSaved ? (
+                    <p className="text-sm text-primary-medium font-medium mt-2">
+                      ⚽ Tu apuesta fue registrada. ¡Mucha suerte!
+                    </p>
+                  ) : (
+                    <p className="text-sm text-red-500 font-medium mt-2">
+                      ❌ Tu apuesta no pudo ser registrada, el partido ya había arrancado.
+                    </p>
+                  )
                 )}
                 <p className="text-md">Si no se abrió WhatsApp automáticamente, hacé clic en el botón de abajo para enviar los detalles.</p>
               </div>
