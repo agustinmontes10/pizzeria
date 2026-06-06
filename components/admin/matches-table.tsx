@@ -16,12 +16,9 @@ export function MatchesTable({ matches, onEdit, onDelete, onCreate }: MatchesTab
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Partidos</h2>
-        <Button
-          onClick={onCreate}
-          className="bg-primary-medium hover:bg-primary-dark text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo partido
+        <Button onClick={onCreate} className="bg-primary-medium hover:bg-primary-dark text-white">
+          <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Nuevo </span>partido
         </Button>
       </div>
 
@@ -31,76 +28,114 @@ export function MatchesTable({ matches, onEdit, onDelete, onCreate }: MatchesTab
           <p className="text-sm mt-1">Creá uno para que los clientes puedan apostar.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-foreground/10">
-                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Partido</th>
-                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Fecha y hora</th>
-                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Estado</th>
-                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Resultado</th>
-                <th className="text-right py-3 px-4 font-semibold text-foreground/60">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {matches.map(match => (
-                <tr key={match.id} className="border-b border-foreground/5 hover:bg-foreground/2">
-                  <td className="py-3 px-4 font-medium">
-                    {match.homeTeam} vs {match.awayTeam}
-                  </td>
-                  <td className="py-3 px-4 text-foreground/70">
-                    {match.matchDate} {match.matchTime}
-                  </td>
-                  <td className="py-3 px-4">
-                    {match.isCompleted ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-foreground/10 text-foreground/60">
-                        Finalizado
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        Próximo
+        <>
+          {/* Mobile: cards */}
+          <div className="sm:hidden space-y-3">
+            {matches.map(match => (
+              <div key={match.id} className="border border-foreground/10 rounded-xl p-4 space-y-2 bg-background">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold">{match.homeTeam} vs {match.awayTeam}</p>
+                    <p className="text-sm text-foreground/50 mt-0.5">{match.matchDate} · {match.matchTime}</p>
+                  </div>
+                  {match.isCompleted ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-foreground/10 text-foreground/60 shrink-0">
+                      Finalizado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 shrink-0">
+                      Próximo
+                    </span>
+                  )}
+                </div>
+                {match.isCompleted && match.result && (
+                  <p className="text-sm font-semibold">
+                    {match.result.homeScore} — {match.result.awayScore}
+                    {match.playerScored !== undefined && match.betPlayer && (
+                      <span className="ml-2 text-xs text-foreground/50 font-normal">
+                        {match.playerScored ? `⚽ ${match.betPlayer} anotó` : `${match.betPlayer} no anotó`}
                       </span>
                     )}
-                  </td>
-                  <td className="py-3 px-4">
-                    {match.isCompleted && match.result ? (
-                      <span className="font-semibold">
-                        {match.result.homeScore} - {match.result.awayScore}
-                        {match.messiScored !== undefined && (
-                          <span className="ml-2 text-xs text-foreground/50">
-                            {match.messiScored ? "⚽ Messi anotó" : "Messi no anotó"}
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="text-foreground/30">-</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(match)}
-                        className="h-8 w-8 hover:bg-primary-medium/10"
-                      >
-                        <Pencil className="h-4 w-4 text-primary-medium" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDelete(match.id)}
-                        className="h-8 w-8 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </td>
+                  </p>
+                )}
+                {match.betPlayer && !match.isCompleted && (
+                  <p className="text-xs text-purple-600">⚽ Apuesta 2: {match.betPlayer} ({match.betPlayerDiscount ?? 30}% off)</p>
+                )}
+                <div className="flex justify-end gap-2 pt-1">
+                  <Button variant="ghost" size="icon" onClick={() => onEdit(match)} className="h-8 w-8 hover:bg-primary-medium/10">
+                    <Pencil className="h-4 w-4 text-primary-medium" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(match.id)} className="h-8 w-8 hover:bg-red-50">
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
+              <thead>
+                <tr className="border-b border-foreground/10">
+                  <th className="text-left py-3 px-4 font-semibold text-foreground/60">Partido</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground/60">Fecha y hora</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground/60">Estado</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground/60">Resultado</th>
+                  <th className="text-right py-3 px-4 font-semibold text-foreground/60">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {matches.map(match => (
+                  <tr key={match.id} className="border-b border-foreground/5 hover:bg-foreground/2">
+                    <td className="py-3 px-4 font-medium">
+                      {match.homeTeam} vs {match.awayTeam}
+                      {match.betPlayer && !match.isCompleted && (
+                        <span className="block text-xs text-purple-500 font-normal mt-0.5">⚽ {match.betPlayer}</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-foreground/70">{match.matchDate} {match.matchTime}</td>
+                    <td className="py-3 px-4">
+                      {match.isCompleted ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-foreground/10 text-foreground/60">
+                          Finalizado
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          Próximo
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {match.isCompleted && match.result ? (
+                        <span className="font-semibold">
+                          {match.result.homeScore} - {match.result.awayScore}
+                          {match.playerScored !== undefined && match.betPlayer && (
+                            <span className="ml-2 text-xs text-foreground/50">
+                              {match.playerScored ? `⚽ ${match.betPlayer} anotó` : `${match.betPlayer} no anotó`}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-foreground/30">-</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => onEdit(match)} className="h-8 w-8 hover:bg-primary-medium/10">
+                          <Pencil className="h-4 w-4 text-primary-medium" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => onDelete(match.id)} className="h-8 w-8 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

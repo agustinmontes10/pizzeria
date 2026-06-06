@@ -95,7 +95,7 @@ export function ManualBetForm({ matches, onSuccess, onCancel }: ManualBetFormPro
     <form onSubmit={handleSubmit} className="space-y-5">
 
       {/* Cliente y total */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Nombre del cliente *</label>
           <input

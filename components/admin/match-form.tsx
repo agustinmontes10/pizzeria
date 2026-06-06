@@ -59,7 +59,7 @@ export function MatchForm({ match, onSubmit, onCancel }: MatchFormProps) {
     <form onSubmit={handleSubmit} className="space-y-5">
 
       {/* Equipos */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Equipo local *</label>
           <input
@@ -85,7 +85,7 @@ export function MatchForm({ match, onSubmit, onCancel }: MatchFormProps) {
       </div>
 
       {/* Fecha y hora */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Fecha *</label>
           <input
@@ -116,7 +116,7 @@ export function MatchForm({ match, onSubmit, onCancel }: MatchFormProps) {
             Opcional. Si no configurás un jugador, esta apuesta no aparecerá para los clientes.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Jugador</label>
             <input
@@ -167,7 +167,7 @@ export function MatchForm({ match, onSubmit, onCancel }: MatchFormProps) {
       {isCompleted && (
         <div className="space-y-4 p-4 bg-foreground/5 rounded-md">
           <p className="text-sm font-semibold">Resultado del partido</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{homeTeam || "Local"}</label>
               <input
