@@ -1,15 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +18,6 @@ import type { Product } from "@/types/product"
 import Image from "next/image"
 import { getDailyStock, updateDailyStockLimit } from "@/lib/daily-stock-service"
 import { getTodayDateString } from "@/utils"
-import { useEffect } from "react"
 
 interface ProductsTableProps {
   products: Product[]
@@ -35,16 +26,9 @@ interface ProductsTableProps {
   onCreate: () => void
 }
 
-export function ProductsTable({
-  products,
-  onEdit,
-  onDelete,
-  onCreate,
-}: ProductsTableProps) {
+export function ProductsTable({ products, onEdit, onDelete, onCreate }: ProductsTableProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  
-  // Daily Stock State
-  const [dailyConfig, setDailyConfig] = useState<{ limit: number, ordered: number }>({ limit: 24, ordered: 0 })
+  const [dailyConfig, setDailyConfig] = useState<{ limit: number; ordered: number }>({ limit: 24, ordered: 0 })
   const [loadingStock, setLoadingStock] = useState(false)
 
   useEffect(() => {
@@ -54,25 +38,22 @@ export function ProductsTable({
   async function loadDailyStock() {
     setLoadingStock(true)
     try {
-        const today = getTodayDateString()
-        const stock = await getDailyStock(today)
-        setDailyConfig(stock)
+      const stock = await getDailyStock(getTodayDateString())
+      setDailyConfig(stock)
     } catch (e) {
-        console.error("Error cargando stock diario:", e)
+      console.error("Error cargando stock diario:", e)
     } finally {
-        setLoadingStock(false)
+      setLoadingStock(false)
     }
   }
 
   async function handleUpdateLimit(newLimit: number) {
-     try {
-        const today = getTodayDateString()
-        await updateDailyStockLimit(today, newLimit)
-        setDailyConfig(prev => ({ ...prev, limit: newLimit }))
-     } catch (e) {
-        console.error("Error actualizando límite:", e)
-        alert("No se pudo actualizar el límite diario.")
-     }
+    try {
+      await updateDailyStockLimit(getTodayDateString(), newLimit)
+      setDailyConfig(prev => ({ ...prev, limit: newLimit }))
+    } catch (e) {
+      console.error("Error actualizando límite:", e)
+    }
   }
 
   async function handleDelete(id: string) {
@@ -84,166 +65,150 @@ export function ProductsTable({
     }
   }
 
+  const available = Math.max(0, dailyConfig.limit - dailyConfig.ordered)
+
   return (
     <div className="space-y-6">
-      
-      {/* Daily Stock Control */}
-      <div className="p-4 border rounded-md bg-secondary-light/5 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-              <div>
-                  <h3 className="font-semibold text-lg">Control de Stock Diario</h3>
-                  <p className="text-sm text-muted-foreground">{getTodayDateString()}</p>
-              </div>
-              <div className="flex gap-4">
-                  <div className="px-3 py-1 bg-background border rounded-md text-center min-w-[100px]">
-                      <span className="block text-xs text-muted-foreground uppercase font-bold">Vendidas</span>
-                      <span className="block text-xl font-bold text-foreground">{dailyConfig.ordered}</span>
-                  </div>
-                  <div className="px-3 py-1 bg-background border rounded-md text-center min-w-[100px]">
-                      <span className="block text-xs text-muted-foreground uppercase font-bold">Disponibles</span>
-                      <span className="block text-xl font-bold text-primary-medium">
-                          {Math.max(0, dailyConfig.limit - dailyConfig.ordered)}
-                      </span>
-                  </div>
-              </div>
+
+      {/* Daily Stock */}
+      <div className="p-4 bg-primary-medium/5 border border-primary-medium/10 rounded-xl flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 className="font-semibold text-foreground">Stock diario</h3>
+          <p className="text-sm text-foreground/50 mt-0.5">{getTodayDateString()}</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-3">
+            <div className="px-4 py-2 bg-background border border-foreground/10 rounded-lg text-center min-w-[90px]">
+              <span className="block text-xs text-foreground/50 uppercase tracking-wide font-semibold">Vendidas</span>
+              <span className="block text-2xl font-bold text-foreground">{dailyConfig.ordered}</span>
+            </div>
+            <div className="px-4 py-2 bg-background border border-foreground/10 rounded-lg text-center min-w-[90px]">
+              <span className="block text-xs text-foreground/50 uppercase tracking-wide font-semibold">Disponibles</span>
+              <span className={`block text-2xl font-bold ${available === 0 ? "text-red-500" : "text-primary-medium"}`}>
+                {available}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-              <div className="flex flex-col items-end gap-1">
-                  <label className="text-sm font-medium">Límite Diario:</label>
-                  <input 
-                     type="number" 
-                     min="0"
-                     className="border rounded px-2 py-1 w-24 text-right"
-                     value={dailyConfig.limit}
-                     onChange={(e) => handleUpdateLimit(parseInt(e.target.value) || 0)}
-                  />
-              </div>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={loadDailyStock} 
-                disabled={loadingStock}
-                title="Actualizar datos"
-              >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={loadingStock ? "animate-spin" : ""}
-                  >
-                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-                      <path d="M21 3v5h-5" />
-                  </svg>
-              </Button>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground/70 whitespace-nowrap">Límite:</label>
+            <input
+              type="number"
+              min="0"
+              className="border border-foreground/20 rounded-lg px-3 py-1.5 w-20 text-center focus:outline-none focus:ring-2 focus:ring-primary-medium/50"
+              value={dailyConfig.limit}
+              onChange={e => handleUpdateLimit(parseInt(e.target.value) || 0)}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={loadDailyStock}
+              disabled={loadingStock}
+              className="h-8 w-8 hover:bg-foreground/5"
+              title="Actualizar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={loadingStock ? "animate-spin" : ""}>
+                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+              </svg>
+            </Button>
           </div>
+        </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={onCreate}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Productos</h2>
+        <Button onClick={onCreate} className="bg-primary-medium hover:bg-primary-dark text-white">
           <Plus className="h-4 w-4 mr-2" />
-          Nuevo Producto
+          Nuevo producto
         </Button>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Imagen</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead>Categoría</TableHead>
-              <TableHead>Precio</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Disponible</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  No hay productos. Crea uno nuevo para comenzar.
-                </TableCell>
-              </TableRow>
-            ) : (
-              products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <div className="relative h-16 w-16 overflow-hidden rounded-md">
-                      <Image
-                        src={product.imageUrl}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                      />
+
+      {/* Table */}
+      {products.length === 0 ? (
+        <div className="text-center py-12 text-foreground/50">
+          <p>No hay productos todavía.</p>
+          <p className="text-sm mt-1">Creá uno nuevo para comenzar.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-foreground/10">
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Imagen</th>
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Nombre</th>
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Descripción</th>
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Categoría</th>
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Precio</th>
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Stock</th>
+                <th className="text-left py-3 px-4 font-semibold text-foreground/60">Estado</th>
+                <th className="text-right py-3 px-4 font-semibold text-foreground/60">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map(product => (
+                <tr key={product.id} className="border-b border-foreground/5 hover:bg-foreground/2">
+                  <td className="py-3 px-4">
+                    <div className="relative h-14 w-14 overflow-hidden rounded-lg">
+                      <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
                     </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="max-w-xs truncate">
-                    {product.description}
-                  </TableCell>
-                  <TableCell>
-                    <span className="capitalize">{product.category}</span>
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="py-3 px-4 font-medium">{product.name}</td>
+                  <td className="py-3 px-4 text-foreground/60 max-w-[200px] truncate">{product.description}</td>
+                  <td className="py-3 px-4 text-foreground/70 capitalize">{product.category}</td>
+                  <td className="py-3 px-4">
                     {product.offerPrice && product.offerPrice > 0 ? (
                       <div className="flex flex-col">
-                        <span className="text-xs text-muted-foreground line-through">${product.price.toFixed(2)}</span>
-                        <span className="font-medium text-primary-medium">${product.offerPrice.toFixed(2)}</span>
+                        <span className="text-xs text-foreground/40 line-through">${product.price.toFixed(2)}</span>
+                        <span className="font-semibold text-primary-medium">${product.offerPrice.toFixed(2)}</span>
                       </div>
                     ) : (
-                      <span>${product.price.toFixed(2)}</span>
+                      <span className="font-medium">${product.price.toFixed(2)}</span>
                     )}
-                  </TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border ${product.available
-                        ? "bg-success/10 text-success border-success/20"
-                        : "bg-error/10 text-error border-error/20"
-                        }`}
-                    >
+                  </td>
+                  <td className="py-3 px-4 text-foreground/70">{product.stock}</td>
+                  <td className="py-3 px-4">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      product.available
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-600"
+                    }`}>
                       {product.available ? "Disponible" : "No disponible"}
                     </span>
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </td>
+                  <td className="py-3 px-4">
                     <div className="flex justify-end gap-2">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={() => onEdit(product)}
+                        className="h-8 w-8 hover:bg-primary-medium/10"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4 text-primary-medium" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            variant="destructive"
+                            variant="ghost"
                             size="icon"
                             disabled={deletingId === product.id}
+                            className="h-8 w-8 hover:bg-red-50"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                            <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Esto eliminará
-                              permanentemente el producto "{product.name}".
+                              Esta acción no se puede deshacer. Se eliminará permanentemente "{product.name}".
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(product.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              className="bg-red-500 hover:bg-red-600 text-white"
                             >
                               Eliminar
                             </AlertDialogAction>
@@ -251,14 +216,13 @@ export function ProductsTable({
                         </AlertDialogContent>
                       </AlertDialog>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
-

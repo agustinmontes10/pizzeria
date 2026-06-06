@@ -28,6 +28,13 @@ import { deleteOrder, listenToOrders, updateOrder } from "@/lib/orders-service"
 import { OrdersTable } from "@/components/admin/orders-table"
 import { format, addDays, subDays } from "date-fns"
 import { es } from "date-fns/locale"
+import { MatchForm } from "@/components/admin/match-form"
+import { MatchesTable } from "@/components/admin/matches-table"
+import { BetsTable } from "@/components/admin/bets-table"
+import { Match } from "@/types/match"
+import { getMatches, createMatch, updateMatch, deleteMatch } from "@/lib/matches-service"
+
+type AdminView = "products" | "schedule" | "orders" | "matches" | "bets"
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
@@ -36,8 +43,13 @@ export default function AdminPage() {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>()
   const [orders, setOrders] = useState<Order[]>([])
-  const [view, setView] = useState<"products" | "schedule" | "orders">("products")
+  const [view, setView] = useState<AdminView>("products")
   const [selectedDate, setSelectedDate] = useState(new Date())
+
+  // Matches state
+  const [matches, setMatches] = useState<Match[]>([])
+  const [isMatchDialogOpen, setIsMatchDialogOpen] = useState(false)
+  const [editingMatch, setEditingMatch] = useState<Match | undefined>()
 
   const router = useRouter()
 
@@ -47,9 +59,9 @@ export default function AdminPage() {
       setIsLoading(false)
       if (user) {
         loadProducts()
+        loadMatches()
       }
     })
-
     return () => unsubscribe()
   }, [])
 
@@ -59,6 +71,15 @@ export default function AdminPage() {
       setProducts(productsData)
     } catch (error: any) {
       toast.error("Error al cargar productos: " + error.message)
+    }
+  }
+
+  async function loadMatches() {
+    try {
+      const matchesData = await getMatches()
+      setMatches(matchesData)
+    } catch (error: any) {
+      toast.error("Error al cargar partidos: " + error.message)
     }
   }
 
@@ -87,6 +108,40 @@ export default function AdminPage() {
     }
   }
 
+  async function handleCreateMatch(data: Omit<Match, "id">) {
+    try {
+      await createMatch(data)
+      await loadMatches()
+      setIsMatchDialogOpen(false)
+      toast.success("Partido creado correctamente")
+    } catch (error: any) {
+      toast.error("Error al crear partido: " + error.message)
+    }
+  }
+
+  async function handleUpdateMatch(data: Omit<Match, "id">) {
+    if (!editingMatch) return
+    try {
+      await updateMatch(editingMatch.id, data)
+      await loadMatches()
+      setIsMatchDialogOpen(false)
+      setEditingMatch(undefined)
+      toast.success("Partido actualizado correctamente")
+    } catch (error: any) {
+      toast.error("Error al actualizar partido: " + error.message)
+    }
+  }
+
+  async function handleDeleteMatch(id: string) {
+    try {
+      await deleteMatch(id)
+      await loadMatches()
+      toast.success("Partido eliminado correctamente")
+    } catch (error: any) {
+      toast.error("Error al eliminar partido: " + error.message)
+    }
+  }
+
   async function handleSignOut() {
     try {
       await signOutUser()
@@ -98,7 +153,7 @@ export default function AdminPage() {
     }
   }
 
-  function handleEdit(product: Product) {
+  function handleEditProduct(product: Product) {
     setEditingProduct(product)
     setIsProductDialogOpen(true)
   }
@@ -106,6 +161,16 @@ export default function AdminPage() {
   function handleNewProduct() {
     setEditingProduct(undefined)
     setIsProductDialogOpen(true)
+  }
+
+  function handleEditMatch(match: Match) {
+    setEditingMatch(match)
+    setIsMatchDialogOpen(true)
+  }
+
+  function handleNewMatch() {
+    setEditingMatch(undefined)
+    setIsMatchDialogOpen(true)
   }
 
   async function handleDeleteOrder(id: string) {
@@ -121,15 +186,11 @@ export default function AdminPage() {
     let previousCount: number | null = null
 
     const unsubscribe = listenToOrders((data) => {
-      console.log('data', data)
-      
-      // Si ya teníamos datos previos (no es la primera carga) y hay más órdenes que antes
       if (previousCount !== null && data.length > previousCount) {
         const audio = new Audio("/nuevoPedido.mp3")
         audio.play().catch(error => console.error("Error reproduciendo audio:", error))
         toast.info("¡Nueva orden recibida!")
       }
-
       previousCount = data.length
       setOrders(data)
     }, dateStr)
@@ -139,6 +200,14 @@ export default function AdminPage() {
 
   const handlePrevDay = () => setSelectedDate(prev => subDays(prev, 1))
   const handleNextDay = () => setSelectedDate(prev => addDays(prev, 1))
+
+  const viewLabels: Record<AdminView, string> = {
+    products: "Gestiona los productos",
+    schedule: "Gestiona los horarios",
+    orders: "Gestiona las órdenes",
+    matches: "Gestiona los partidos para apuestas",
+    bets: "Apuestas realizadas por clientes",
+  }
 
   if (isLoading) {
     return (
@@ -155,9 +224,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-full max-w-md p-8 bg-[var(--white)] rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center">
-            Panel de Administración
-          </h1>
+          <h1 className="text-2xl font-bold mb-6 text-center">Panel de Administración</h1>
           <LoginForm onSuccess={() => { }} />
         </div>
       </div>
@@ -170,41 +237,25 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Panel de Administración</h1>
-            <p className="text-foreground/60 mt-1">
-              {view === "products" ? "Gestiona los productos" : view === "orders" ? "Gestiona las órdenes" : "Gestiona los horarios"}
-            </p>
+            <p className="text-foreground/60 mt-1">{viewLabels[view]}</p>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              className={view === "products" ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
-              variant={view === "products" ? "default" : "outline"}
-              onClick={() => setView("products")}
-            >
-              Productos
-            </Button>
+          <div className="flex flex-wrap gap-2">
+            {(["products", "schedule", "orders", "matches", "bets"] as AdminView[]).map(v => (
+              <Button
+                key={v}
+                className={view === v ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
+                variant={view === v ? "default" : "outline"}
+                onClick={() => setView(v)}
+              >
+                {{ products: "Productos", schedule: "Horarios", orders: "Órdenes", matches: "Partidos", bets: "Apuestas" }[v]}
+              </Button>
+            ))}
 
             <Button
-              className={view === "schedule" ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
-              variant={view === "schedule" ? "default" : "outline"}
-              onClick={() => setView("schedule")}
-            >
-              Horarios
-            </Button>
-
-            <Button
-              className={view === "orders" ? "bg-primary-medium hover:bg-primary-dark text-white" : "border-primary-medium text-primary-medium hover:bg-primary-medium/10"}
-              variant={view === "orders" ? "default" : "outline"}
-              onClick={() => setView("orders")}
-            >
-              Órdenes
-            </Button>
-
-
-            <Button 
-                variant="outline" 
-                onClick={handleSignOut}
-                className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+              variant="outline"
+              onClick={handleSignOut}
+              className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Cerrar Sesión
@@ -212,16 +263,17 @@ export default function AdminPage() {
           </div>
         </div>
 
-
         <div className="bg-[var(--white)] rounded-xl shadow-sm border border-black/5 p-6">
-          {view === "products" ? (
+          {view === "products" && (
             <ProductsTable
               products={products}
-              onEdit={handleEdit}
+              onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
               onCreate={handleNewProduct}
             />
-          ) : view === "orders" ? (
+          )}
+
+          {view === "orders" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-secondary-light/5 p-4 rounded-lg border border-secondary-light/10">
                 <Button variant="ghost" size="icon" onClick={handlePrevDay} className="hover:bg-secondary-light/10">
@@ -234,24 +286,29 @@ export default function AdminPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              <OrdersTable
-                orders={orders}
-                onDelete={handleDeleteOrder}
-                onMarkSent={handleMarkSent}
-              />
+              <OrdersTable orders={orders} onDelete={handleDeleteOrder} onMarkSent={handleMarkSent} />
             </div>
-          ) : (
-            <ScheduleTable />
           )}
+
+          {view === "schedule" && <ScheduleTable />}
+
+          {view === "matches" && (
+            <MatchesTable
+              matches={matches}
+              onEdit={handleEditMatch}
+              onDelete={handleDeleteMatch}
+              onCreate={handleNewMatch}
+            />
+          )}
+
+          {view === "bets" && <BetsTable />}
         </div>
 
-
+        {/* Product dialog */}
         <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? "Editar Producto" : "Nuevo Producto"}
-              </DialogTitle>
+              <DialogTitle>{editingProduct ? "Editar Producto" : "Nuevo Producto"}</DialogTitle>
             </DialogHeader>
             <ProductForm
               product={editingProduct}
@@ -263,8 +320,24 @@ export default function AdminPage() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Match dialog */}
+        <Dialog open={isMatchDialogOpen} onOpenChange={setIsMatchDialogOpen}>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingMatch ? "Editar Partido" : "Nuevo Partido"}</DialogTitle>
+            </DialogHeader>
+            <MatchForm
+              match={editingMatch}
+              onSubmit={editingMatch ? handleUpdateMatch : handleCreateMatch}
+              onCancel={() => {
+                setIsMatchDialogOpen(false)
+                setEditingMatch(undefined)
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
 }
-
